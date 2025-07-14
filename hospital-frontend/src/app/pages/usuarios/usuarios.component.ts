@@ -4,10 +4,38 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { Usuario, TipoUsuario, CreateUsuarioRequest } from '../../models/usuario.model';
 import { UsuarioService } from '../../services/usuario.service';
 
+// Imports de PrimeNG
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
+import { PasswordModule } from 'primeng/password';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { MessageModule } from 'primeng/message';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule,
+    TableModule,
+    ButtonModule,
+    DialogModule,
+    InputTextModule,
+    DropdownModule,
+    PasswordModule,
+    TagModule,
+    TooltipModule,
+    MessageModule,
+    ToastModule
+  ],
+  providers: [MessageService],
   templateUrl: './usuarios.component.html',
   styleUrls: ['./usuarios.component.css']
 })
@@ -18,14 +46,23 @@ export class UsuariosComponent implements OnInit {
   showForm = false;
   loading = false;
   tiposUsuario = Object.values(TipoUsuario);
+  
+  tipoOptions = [
+    { label: 'Paciente', value: 'paciente' },
+    { label: 'Médico', value: 'medico' },
+    { label: 'Enfermera', value: 'enfermera' },
+    { label: 'Administrador', value: 'admin' }
+  ];
 
   constructor(
     private usuarioService: UsuarioService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private messageService: MessageService
   ) {
     this.usuarioForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.email]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(12)]],
       tipo: ['', [Validators.required]]
     });
   }
@@ -51,6 +88,8 @@ export class UsuariosComponent implements OnInit {
   openCreateForm(): void {
     this.editingUsuario = null;
     this.usuarioForm.reset();
+    this.usuarioForm.get('password')?.setValidators([Validators.required, Validators.minLength(12)]);
+    this.usuarioForm.get('password')?.updateValueAndValidity();
     this.showForm = true;
   }
 
@@ -59,8 +98,11 @@ export class UsuariosComponent implements OnInit {
     this.usuarioForm.patchValue({
       nombre: usuario.nombre,
       email: usuario.email,
-      tipo: usuario.tipo
+      tipo: usuario.tipo,
+      password: '' 
     });
+    this.usuarioForm.get('password')?.setValidators([Validators.minLength(12)]);
+    this.usuarioForm.get('password')?.updateValueAndValidity();
     this.showForm = true;
   }
 
@@ -87,9 +129,11 @@ export class UsuariosComponent implements OnInit {
       next: (usuario) => {
         this.usuarios.push(usuario);
         this.closeForm();
+        alert('Usuario creado exitosamente. El usuario deberá configurar MFA en su primer login.');
       },
       error: (error) => {
         console.error('Error creating usuario:', error);
+        alert('Error al crear usuario: ' + (error.error?.error || 'Error desconocido'));
       }
     });
   }
@@ -102,9 +146,11 @@ export class UsuariosComponent implements OnInit {
           this.usuarios[index] = usuario;
         }
         this.closeForm();
+        alert('Usuario actualizado exitosamente.');
       },
       error: (error) => {
         console.error('Error updating usuario:', error);
+        alert('Error al actualizar usuario: ' + (error.error?.error || 'Error desconocido'));
       }
     });
   }
@@ -114,11 +160,35 @@ export class UsuariosComponent implements OnInit {
       this.usuarioService.deleteUsuario(id).subscribe({
         next: () => {
           this.usuarios = this.usuarios.filter(u => u.id_usuario !== id);
+          alert('Usuario eliminado exitosamente.');
         },
         error: (error) => {
           console.error('Error deleting usuario:', error);
+          alert('Error al eliminar usuario: ' + (error.error?.error || 'Error desconocido'));
         }
       });
     }
+  }
+
+  getMFAStatus(usuario: Usuario): string {
+    return usuario.mfa_enabled ? 'Activo' : 'Pendiente';
+  }
+
+  getMFAStatusClass(usuario: Usuario): string {
+    return usuario.mfa_enabled ? 'badge-success' : 'badge-warning';
+  }
+
+  getTagSeverity(tipo: string): string {
+    switch(tipo) {
+      case 'admin': return 'danger';
+      case 'medico': return 'info';
+      case 'enfermera': return 'warning';
+      case 'paciente': return 'success';
+      default: return 'secondary';
+    }
+  }
+
+  getMFATagSeverity(usuario: Usuario): string {
+    return usuario.mfa_enabled ? 'success' : 'warning';
   }
 }

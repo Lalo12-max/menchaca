@@ -1,131 +1,223 @@
 <div class="horarios-container">
   <div class="header">
     <h2>Gestión de Horarios</h2>
-    <button class="btn btn-primary" (click)="openCreateForm()">
-      <i class="fas fa-plus"></i> Nuevo Horario
-    </button>
+    <p-button 
+      label="Nuevo Horario" 
+      icon="pi pi-plus" 
+      (onClick)="openCreateForm()"
+      styleClass="p-button-primary">
+    </p-button>
   </div>
+
+  <p-message 
+    *ngIf="errorMessage" 
+    severity="error" 
+    [text]="errorMessage"
+    [closable]="true"
+    (onClose)="clearMessages()">
+  </p-message>
+  
+  <p-message 
+    *ngIf="successMessage" 
+    severity="success" 
+    [text]="successMessage"
+    [closable]="true"
+    (onClose)="clearMessages()">
+  </p-message>
 
   <div *ngIf="loading" class="loading">
-    <i class="fas fa-spinner fa-spin"></i> Cargando...
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+    <p>Cargando horarios...</p>
   </div>
 
-  <div *ngIf="!loading" class="table-container">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Consultorio</th>
-          <th>Médico</th>
-          <th>Turno</th>
-          <th>Consulta ID</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let horario of horarios">
-          <td>{{ horario.id_horario }}</td>
-          <td>{{ getConsultorioNombre(horario.consultorio_id) }}</td>
-          <td>{{ getMedicoNombre(horario.medico_id) }}</td>
-          <td>
-            <span class="badge" [ngClass]="'badge-' + horario.turno">
-              {{ horario.turno }}
-            </span>
-          </td>
-          <td>{{ horario.consulta_id || 'N/A' }}</td>
-          <td>
-            <button class="btn btn-sm btn-secondary" (click)="openEditForm(horario)">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" (click)="deleteHorario(horario.id_horario!)">
-              <i class="fas fa-trash"></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <p-table 
+    *ngIf="!loading"
+    [value]="horarios" 
+    [paginator]="true" 
+    [rows]="10"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} horarios"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    styleClass="p-datatable-striped"
+    responsiveLayout="scroll">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="id_horario">
+          ID <p-sortIcon field="id_horario"></p-sortIcon>
+        </th>
+        <th>Consultorio</th>
+        <th>Médico</th>
+        <th pSortableColumn="turno">
+          Turno <p-sortIcon field="turno"></p-sortIcon>
+        </th>
+        <th>Consulta ID</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-horario>
+      <tr>
+        <td>
+          <p-tag [value]="horario.id_horario.toString()" severity="info"></p-tag>
+        </td>
+        <td>
+          <span pTooltip="{{ getConsultorioNombre(horario.consultorio_id) }}" tooltipPosition="top">
+            {{ getConsultorioNombre(horario.consultorio_id) }}
+          </span>
+        </td>
+        <td>
+          <span pTooltip="{{ getMedicoNombre(horario.medico_id) }}" tooltipPosition="top">
+            {{ getMedicoNombre(horario.medico_id) }}
+          </span>
+        </td>
+        <td>
+          <p-tag 
+            [value]="horario.turno" 
+            [severity]="getTurnoSeverity(horario.turno)"
+            styleClass="turno-badge">
+          </p-tag>
+        </td>
+        <td>
+          <p-tag 
+            *ngIf="horario.consulta_id; else noConsulta"
+            [value]="horario.consulta_id.toString()" 
+            severity="secondary">
+          </p-tag>
+          <ng-template #noConsulta>
+            <span style="color: #6c757d; font-style: italic;">N/A</span>
+          </ng-template>
+        </td>
+        <td>
+          <p-button 
+            icon="pi pi-pencil" 
+            styleClass="p-button-rounded p-button-text p-button-secondary p-button-sm"
+            (onClick)="openEditForm(horario)"
+            pTooltip="Editar horario"
+            tooltipPosition="top">
+          </p-button>
+          <p-button 
+            icon="pi pi-trash" 
+            styleClass="p-button-rounded p-button-text p-button-danger p-button-sm"
+            (onClick)="confirmDelete(horario.id_horario!)"
+            pTooltip="Eliminar horario"
+            tooltipPosition="top">
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 2rem;">
+          <i class="pi pi-info-circle" style="font-size: 2rem; color: #6c757d;"></i>
+          <p style="margin-top: 1rem; color: #6c757d;">No se encontraron horarios</p>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
 
-  <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ editingHorario ? 'Editar Horario' : 'Nuevo Horario' }}</h3>
-        <button class="btn-close" (click)="closeForm()">&times;</button>
+  <p-dialog 
+    [header]="editingHorario ? 'Editar Horario' : 'Nuevo Horario'"
+    [(visible)]="showForm"
+    [modal]="true"
+    [style]="{width: '500px'}"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="p-fluid">
+    
+    <form [formGroup]="horarioForm" (ngSubmit)="onSubmit()">
+      <div class="p-field">
+        <label for="consultorio_id">Consultorio *</label>
+        <p-dropdown 
+          id="consultorio_id"
+          formControlName="consultorio_id"
+          [options]="consultorioOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccione un consultorio"
+          [class.ng-invalid]="horarioForm.get('consultorio_id')?.invalid && horarioForm.get('consultorio_id')?.touched"
+          [class.ng-touched]="horarioForm.get('consultorio_id')?.touched">
+        </p-dropdown>
+        <small class="p-error" *ngIf="horarioForm.get('consultorio_id')?.invalid && horarioForm.get('consultorio_id')?.touched">
+          Seleccione un consultorio
+        </small>
       </div>
-      
-      <form [formGroup]="horarioForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="consultorio_id">Consultorio *</label>
-          <select 
-            id="consultorio_id" 
-            formControlName="consultorio_id" 
-            class="form-control"
-            [class.is-invalid]="horarioForm.get('consultorio_id')?.invalid && horarioForm.get('consultorio_id')?.touched"
-          >
-            <option value="">Seleccione un consultorio</option>
-            <option *ngFor="let consultorio of consultorios" [value]="consultorio.id_consultorio">
-              {{ consultorio.nombre }}
-            </option>
-          </select>
-          <div *ngIf="horarioForm.get('consultorio_id')?.invalid && horarioForm.get('consultorio_id')?.touched" class="invalid-feedback">
-            Seleccione un consultorio
-          </div>
-        </div>
 
-        <div class="form-group">
-          <label for="medico_id">Médico *</label>
-          <select 
-            id="medico_id" 
-            formControlName="medico_id" 
-            class="form-control"
-            [class.is-invalid]="horarioForm.get('medico_id')?.invalid && horarioForm.get('medico_id')?.touched"
-          >
-            <option value="">Seleccione un médico</option>
-            <option *ngFor="let medico of medicos" [value]="medico.id_usuario">
-              {{ medico.nombre }}
-            </option>
-          </select>
-          <div *ngIf="horarioForm.get('medico_id')?.invalid && horarioForm.get('medico_id')?.touched" class="invalid-feedback">
-            Seleccione un médico
-          </div>
-        </div>
+      <div class="p-field">
+        <label for="medico_id">Médico *</label>
+        <p-dropdown 
+          id="medico_id"
+          formControlName="medico_id"
+          [options]="medicoOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccione un médico"
+          [class.ng-invalid]="horarioForm.get('medico_id')?.invalid && horarioForm.get('medico_id')?.touched"
+          [class.ng-touched]="horarioForm.get('medico_id')?.touched">
+        </p-dropdown>
+        <small class="p-error" *ngIf="horarioForm.get('medico_id')?.invalid && horarioForm.get('medico_id')?.touched">
+          Seleccione un médico
+        </small>
+      </div>
 
-        <div class="form-group">
-          <label for="turno">Turno *</label>
-          <select 
-            id="turno" 
-            formControlName="turno" 
-            class="form-control"
-            [class.is-invalid]="horarioForm.get('turno')?.invalid && horarioForm.get('turno')?.touched"
-          >
-            <option value="">Seleccione un turno</option>
-            <option value="mañana">Mañana</option>
-            <option value="tarde">Tarde</option>
-            <option value="noche">Noche</option>
-          </select>
-          <div *ngIf="horarioForm.get('turno')?.invalid && horarioForm.get('turno')?.touched" class="invalid-feedback">
-            Seleccione un turno
-          </div>
-        </div>
+      <div class="p-field">
+        <label for="turno">Turno *</label>
+        <p-dropdown 
+          id="turno"
+          formControlName="turno"
+          [options]="turnoOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccione un turno"
+          [class.ng-invalid]="horarioForm.get('turno')?.invalid && horarioForm.get('turno')?.touched"
+          [class.ng-touched]="horarioForm.get('turno')?.touched">
+        </p-dropdown>
+        <small class="p-error" *ngIf="horarioForm.get('turno')?.invalid && horarioForm.get('turno')?.touched">
+          Seleccione un turno
+        </small>
+      </div>
 
-        <div class="form-group">
-          <label for="consulta_id">ID de Consulta (Opcional)</label>
-          <input 
-            type="number" 
-            id="consulta_id" 
-            formControlName="consulta_id" 
-            class="form-control"
-            placeholder="ID de consulta asociada"
-          >
-        </div>
+      <div class="p-field">
+        <label for="consulta_id">Consulta (Opcional)</label>
+        <p-dropdown 
+          id="consulta_id"
+          formControlName="consulta_id"
+          [options]="consultaOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccione una consulta"
+          [showClear]="true">
+        </p-dropdown>
+      </div>
+    </form>
+    
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        styleClass="p-button-text p-button-secondary"
+        (onClick)="closeForm()">
+      </p-button>
+      <p-button 
+        [label]="editingHorario ? 'Actualizar' : 'Crear'" 
+        [icon]="loading ? 'pi pi-spin pi-spinner' : (editingHorario ? 'pi pi-check' : 'pi pi-plus')"
+        styleClass="p-button-primary"
+        [disabled]="horarioForm.invalid || loading"
+        (onClick)="onSubmit()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
 
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" [disabled]="horarioForm.invalid">
-            {{ editingHorario ? 'Actualizar' : 'Crear' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <p-confirmDialog 
+    header="Confirmar eliminación"
+    message="¿Está seguro de que desea eliminar este horario?"
+    icon="pi pi-exclamation-triangle"
+    acceptLabel="Sí, eliminar"
+    rejectLabel="Cancelar"
+    acceptButtonStyleClass="p-button-danger"
+    rejectButtonStyleClass="p-button-text">
+  </p-confirmDialog>
+
+  <p-toast position="top-right"></p-toast>
 </div>

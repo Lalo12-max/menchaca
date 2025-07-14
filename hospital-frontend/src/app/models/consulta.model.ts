@@ -6,6 +6,7 @@ export interface Consulta {
   tipo: string;
   horario: Date;
   diagnostico?: string;
+  costo?: number;
 }
 
 export interface CreateConsultaRequest {
@@ -15,4 +16,5 @@ export interface CreateConsultaRequest {
   tipo: string;
   horario: Date;
   diagnostico?: string;
+  costo?: number;
 }

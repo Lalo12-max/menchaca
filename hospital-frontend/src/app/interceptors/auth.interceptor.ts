@@ -1,28 +1,32 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { catchError, throwError } from 'rxjs';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('token');
-  
-  // No agregar token a las rutas de autenticación
-  if (req.url.includes('/auth/')) {
-    return next(req);
-  }
-  
-  if (token && token.length > 10) {
-    console.log('Agregando token a la petición:', token.substring(0, 20) + '...');
-    console.log('URL de la petición:', req.url);
-    
-    const authReq = req.clone({
+  const router = inject(Router);
+  const token = localStorage.getItem('access_token');
+
+  if (token) {
+    req = req.clone({
       setHeaders: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${token}`
       }
     });
-    return next(authReq);
-  } else {
-    console.log('No hay token válido disponible para la petición a:', req.url);
-    console.log('Token actual:', token);
   }
-  
-  return next(req);
+
+  return next(req).pipe(
+    catchError(error => {
+      if (error.status === 401) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        router.navigate(['/login']);
+      } else if (error.status === 403) {
+        // Manejar errores de permisos
+        console.error('Permisos insuficientes:', error.error);
+        // Podrías mostrar un mensaje de error o redirigir a una página de "sin permisos"
+      }
+      return throwError(() => error);
+    })
+  );
 };

@@ -1,6 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+import { ButtonModule } from 'primeng/button';
+import { TableModule } from 'primeng/table';
+import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
+import { CardModule } from 'primeng/card';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { MessageModule } from 'primeng/message';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
+
 import { Consulta, CreateConsultaRequest } from '../../models/consulta.model';
 import { ConsultaService } from '../../services/consulta.service';
 import { UsuarioService } from '../../services/usuario.service';
@@ -11,7 +25,23 @@ import { Consultorio } from '../../models/consultorio.model';
 @Component({
   selector: 'app-consultas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule,
+    ButtonModule,
+    TableModule,
+    DialogModule,
+    InputTextModule,
+    DropdownModule,
+    CardModule,
+    TagModule,
+    TooltipModule,
+    MessageModule,
+    ToastModule,
+    ConfirmDialogModule
+  ],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './consultas.component.html',
   styleUrls: ['./consultas.component.css']
 })
@@ -25,11 +55,23 @@ export class ConsultasComponent implements OnInit {
   pacientes: Usuario[] = [];
   consultorios: Consultorio[] = [];
 
+  consultorioOptions: any[] = [];
+  medicoOptions: any[] = [];
+  pacienteOptions: any[] = [];
+  tipoOptions = [
+    { label: 'Consulta General', value: 'consulta_general' },
+    { label: 'Especialidad', value: 'especialidad' },
+    { label: 'Urgencia', value: 'urgencia' },
+    { label: 'Control', value: 'control' }
+  ];
+
   constructor(
     private consultaService: ConsultaService,
     private usuarioService: UsuarioService,
     private consultorioService: ConsultorioService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
   ) {
     this.consultaForm = this.fb.group({
       consultorio_id: ['', [Validators.required]],
@@ -37,7 +79,8 @@ export class ConsultasComponent implements OnInit {
       paciente_id: ['', [Validators.required]],
       tipo: ['', [Validators.required]],
       horario: ['', [Validators.required]],
-      diagnostico: ['']
+      diagnostico: [''],
+      costo: ['', [Validators.min(0)]]
     });
   }
 
@@ -66,9 +109,24 @@ export class ConsultasComponent implements OnInit {
       next: (usuarios) => {
         this.medicos = usuarios.filter(u => u.tipo === 'medico');
         this.pacientes = usuarios.filter(u => u.tipo === 'paciente');
+        
+        this.medicoOptions = this.medicos.map(medico => ({
+          label: medico.nombre,
+          value: medico.id_usuario
+        }));
+        
+        this.pacienteOptions = this.pacientes.map(paciente => ({
+          label: paciente.nombre,
+          value: paciente.id_usuario
+        }));
       },
       error: (error) => {
         console.error('Error loading usuarios:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al cargar usuarios'
+        });
       }
     });
   }
@@ -77,9 +135,19 @@ export class ConsultasComponent implements OnInit {
     this.consultorioService.getConsultorios().subscribe({
       next: (consultorios) => {
         this.consultorios = consultorios;
+        
+        this.consultorioOptions = this.consultorios.map(consultorio => ({
+          label: consultorio.nombre,
+          value: consultorio.id_consultorio
+        }));
       },
       error: (error) => {
         console.error('Error loading consultorios:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al cargar consultorios'
+        });
       }
     });
   }
@@ -99,7 +167,8 @@ export class ConsultasComponent implements OnInit {
       paciente_id: consulta.paciente_id,
       tipo: consulta.tipo,
       horario: horarioFormatted,
-      diagnostico: consulta.diagnostico
+      diagnostico: consulta.diagnostico,
+      costo: consulta.costo
     });
     this.showForm = true;
   }
@@ -113,9 +182,18 @@ export class ConsultasComponent implements OnInit {
   onSubmit(): void {
     if (this.consultaForm.valid) {
       const consultaData: CreateConsultaRequest = {
-        ...this.consultaForm.value,
-        horario: new Date(this.consultaForm.value.horario)
+        consultorio_id: +this.consultaForm.value.consultorio_id,  
+        medico_id: +this.consultaForm.value.medico_id,            
+        paciente_id: +this.consultaForm.value.paciente_id,       
+        tipo: this.consultaForm.value.tipo,
+        horario: new Date(this.consultaForm.value.horario),
+        diagnostico: this.consultaForm.value.diagnostico,
+        costo: this.consultaForm.value.costo ? +this.consultaForm.value.costo : undefined  
       };
+      
+      console.log('🚀 Enviando datos de consulta:', consultaData);
+      console.log('📅 Tipo de horario:', typeof consultaData.horario);
+      console.log('📅 Valor de horario:', consultaData.horario);
       
       if (this.editingConsulta) {
         this.updateConsulta(this.editingConsulta.id_consulta!, consultaData);
@@ -126,13 +204,29 @@ export class ConsultasComponent implements OnInit {
   }
 
   createConsulta(consultaData: CreateConsultaRequest): void {
+    console.log('🚀 Enviando datos de consulta:', consultaData);
+    console.log('📅 Tipo de horario:', typeof consultaData.horario);
+    console.log('📅 Valor de horario:', consultaData.horario);
+    
     this.consultaService.createConsulta(consultaData).subscribe({
       next: (consulta) => {
+        console.log('✅ Consulta creada exitosamente:', consulta);
         this.consultas.push(consulta);
         this.closeForm();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Consulta creada exitosamente'
+        });
       },
       error: (error) => {
-        console.error('Error creating consulta:', error);
+        console.error('❌ Error creating consulta:', error);
+        console.error('📄 Error details:', error.error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al crear la consulta'
+        });
       }
     });
   }
@@ -145,23 +239,58 @@ export class ConsultasComponent implements OnInit {
           this.consultas[index] = consulta;
         }
         this.closeForm();
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Consulta actualizada exitosamente'
+        });
       },
       error: (error) => {
         console.error('Error updating consulta:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al actualizar la consulta'
+        });
       }
     });
   }
 
   deleteConsulta(id: number): void {
-    if (confirm('¿Está seguro de que desea eliminar esta consulta?')) {
-      this.consultaService.deleteConsulta(id).subscribe({
-        next: () => {
-          this.consultas = this.consultas.filter(c => c.id_consulta !== id);
-        },
-        error: (error) => {
-          console.error('Error deleting consulta:', error);
-        }
-      });
+    this.confirmationService.confirm({
+      message: '¿Está seguro de que desea eliminar esta consulta?',
+      header: 'Confirmar eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.consultaService.deleteConsulta(id).subscribe({
+          next: () => {
+            this.consultas = this.consultas.filter(c => c.id_consulta !== id);
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Consulta eliminada exitosamente'
+            });
+          },
+          error: (error) => {
+            console.error('Error deleting consulta:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al eliminar la consulta'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  getTipoSeverity(tipo: string): string {
+    switch (tipo) {
+      case 'urgencia': return 'danger';
+      case 'especialidad': return 'info';
+      case 'control': return 'warning';
+      case 'consulta_general': return 'success';
+      default: return 'secondary';
     }
   }
 

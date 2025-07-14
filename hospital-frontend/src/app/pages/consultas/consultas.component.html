@@ -1,164 +1,220 @@
 <div class="consultas-container">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+  
   <div class="header">
     <h2>Gestión de Consultas</h2>
-    <button class="btn btn-primary" (click)="openCreateForm()">
-      <i class="fas fa-plus"></i> Nueva Consulta
-    </button>
+    <p-button 
+      label="Nueva Consulta" 
+      icon="pi pi-plus" 
+      (click)="openCreateForm()"
+      styleClass="p-button-success">
+    </p-button>
   </div>
 
-  <div *ngIf="loading" class="loading">
-    <i class="fas fa-spinner fa-spin"></i> Cargando...
-  </div>
-
-  <div *ngIf="!loading" class="table-container">
-    <table class="table">
-      <thead>
+  <div class="table-container" *ngIf="!loading">
+    <p-table 
+      [value]="consultas" 
+      [paginator]="true" 
+      [rows]="10" 
+      [showCurrentPageReport]="true" 
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} consultas"
+      [rowsPerPageOptions]="[5,10,20]"
+      styleClass="p-datatable-striped"
+      [scrollable]="true"
+      scrollHeight="600px">
+      
+      <ng-template pTemplate="header">
         <tr>
-          <th>ID</th>
-          <th>Consultorio</th>
-          <th>Médico</th>
-          <th>Paciente</th>
-          <th>Tipo</th>
-          <th>Horario</th>
-          <th>Diagnóstico</th>
-          <th>Acciones</th>
+          <th style="width: 60px;">ID</th>
+          <th style="width: 150px;">Consultorio</th>
+          <th style="width: 150px;">Médico</th>
+          <th style="width: 150px;">Paciente</th>
+          <th style="width: 120px;">Tipo</th>
+          <th style="width: 180px;">Horario</th>
+          <th style="width: 200px;">Diagnóstico</th>
+          <th style="width: 100px;">Costo</th>
+          <th style="width: 150px;">Acciones</th>
         </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let consulta of consultas">
+      </ng-template>
+      
+      <ng-template pTemplate="body" let-consulta>
+        <tr>
           <td>{{ consulta.id_consulta }}</td>
           <td>{{ getConsultorioNombre(consulta.consultorio_id) }}</td>
           <td>{{ getMedicoNombre(consulta.medico_id) }}</td>
           <td>{{ getPacienteNombre(consulta.paciente_id) }}</td>
-          <td>{{ consulta.tipo }}</td>
-          <td>{{ consulta.horario | date:'dd/MM/yyyy HH:mm' }}</td>
-          <td>{{ consulta.diagnostico || 'Pendiente' }}</td>
           <td>
-            <button class="btn btn-sm btn-secondary" (click)="openEditForm(consulta)">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" (click)="deleteConsulta(consulta.id_consulta!)">
-              <i class="fas fa-trash"></i>
-            </button>
+            <p-tag 
+              [value]="consulta.tipo" 
+              [severity]="getTipoSeverity(consulta.tipo)">
+            </p-tag>
+          </td>
+          <td>{{ consulta.horario | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <span 
+              [title]="consulta.diagnostico" 
+              style="display: block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              {{ consulta.diagnostico || 'Sin diagnóstico' }}
+            </span>
+          </td>
+          <td>{{ consulta.costo | currency:'USD':'symbol':'1.2-2' }}</td>
+          <td>
+            <div class="action-buttons">
+              <p-button 
+                icon="pi pi-pencil" 
+                styleClass="p-button-rounded p-button-text p-button-warning"
+                (click)="openEditForm(consulta)"
+                pTooltip="Editar"
+                tooltipPosition="top">
+              </p-button>
+              <p-button 
+                icon="pi pi-trash" 
+                styleClass="p-button-rounded p-button-text p-button-danger"
+                (click)="deleteConsulta(consulta.id_consulta!)"
+                pTooltip="Eliminar"
+                tooltipPosition="top">
+              </p-button>
+            </div>
           </td>
         </tr>
-      </tbody>
-    </table>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="9" style="text-align: center; padding: 2rem;">
+            <p-message severity="info" text="No hay consultas registradas"></p-message>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
   </div>
 
-  <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ editingConsulta ? 'Editar Consulta' : 'Nueva Consulta' }}</h3>
-        <button class="btn-close" (click)="closeForm()">&times;</button>
-      </div>
-      
-      <form [formGroup]="consultaForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="consultorio_id">Consultorio *</label>
-          <select 
-            id="consultorio_id" 
-            formControlName="consultorio_id" 
-            class="form-control"
-            [class.is-invalid]="consultaForm.get('consultorio_id')?.invalid && consultaForm.get('consultorio_id')?.touched"
-          >
-            <option value="">Seleccione un consultorio</option>
-            <option *ngFor="let consultorio of consultorios" [value]="consultorio.id_consultorio">
-              {{ consultorio.nombre }}
-            </option>
-          </select>
-          <div *ngIf="consultaForm.get('consultorio_id')?.invalid && consultaForm.get('consultorio_id')?.touched" class="invalid-feedback">
-            Seleccione un consultorio
-          </div>
+  <div class="loading" *ngIf="loading">
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+    <p>Cargando consultas...</p>
+  </div>
+
+  <p-dialog 
+    [(visible)]="showForm" 
+    [modal]="true" 
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="consulta-dialog"
+    [style]="{width: '600px', maxHeight: '90vh'}"
+    [header]="editingConsulta ? 'Editar Consulta' : 'Nueva Consulta'">
+    
+    <form [formGroup]="consultaForm" (ngSubmit)="onSubmit()">
+      <div class="p-fluid">
+        <div class="p-field">
+          <label for="consultorio">Consultorio *</label>
+          <p-dropdown 
+            id="consultorio"
+            formControlName="consultorio_id"
+            [options]="consultorioOptions"
+            placeholder="Seleccione un consultorio"
+            [showClear]="true">
+          </p-dropdown>
+          <small class="p-error" *ngIf="consultaForm.get('consultorio_id')?.invalid && consultaForm.get('consultorio_id')?.touched">
+            El consultorio es requerido
+          </small>
         </div>
 
-        <div class="form-group">
-          <label for="medico_id">Médico *</label>
-          <select 
-            id="medico_id" 
-            formControlName="medico_id" 
-            class="form-control"
-            [class.is-invalid]="consultaForm.get('medico_id')?.invalid && consultaForm.get('medico_id')?.touched"
-          >
-            <option value="">Seleccione un médico</option>
-            <option *ngFor="let medico of medicos" [value]="medico.id_usuario">
-              {{ medico.nombre }}
-            </option>
-          </select>
-          <div *ngIf="consultaForm.get('medico_id')?.invalid && consultaForm.get('medico_id')?.touched" class="invalid-feedback">
-            Seleccione un médico
-          </div>
+        <div class="p-field">
+          <label for="medico">Médico *</label>
+          <p-dropdown 
+            id="medico"
+            formControlName="medico_id"
+            [options]="medicoOptions"
+            placeholder="Seleccione un médico"
+            [showClear]="true">
+          </p-dropdown>
+          <small class="p-error" *ngIf="consultaForm.get('medico_id')?.invalid && consultaForm.get('medico_id')?.touched">
+            El médico es requerido
+          </small>
         </div>
 
-        <div class="form-group">
-          <label for="paciente_id">Paciente *</label>
-          <select 
-            id="paciente_id" 
-            formControlName="paciente_id" 
-            class="form-control"
-            [class.is-invalid]="consultaForm.get('paciente_id')?.invalid && consultaForm.get('paciente_id')?.touched"
-          >
-            <option value="">Seleccione un paciente</option>
-            <option *ngFor="let paciente of pacientes" [value]="paciente.id_usuario">
-              {{ paciente.nombre }}
-            </option>
-          </select>
-          <div *ngIf="consultaForm.get('paciente_id')?.invalid && consultaForm.get('paciente_id')?.touched" class="invalid-feedback">
-            Seleccione un paciente
-          </div>
+        <div class="p-field">
+          <label for="paciente">Paciente *</label>
+          <p-dropdown 
+            id="paciente"
+            formControlName="paciente_id"
+            [options]="pacienteOptions"
+            placeholder="Seleccione un paciente"
+            [showClear]="true">
+          </p-dropdown>
+          <small class="p-error" *ngIf="consultaForm.get('paciente_id')?.invalid && consultaForm.get('paciente_id')?.touched">
+            El paciente es requerido
+          </small>
         </div>
 
-        <div class="form-group">
+        <div class="p-field">
           <label for="tipo">Tipo de Consulta *</label>
-          <select 
-            id="tipo" 
-            formControlName="tipo" 
-            class="form-control"
-            [class.is-invalid]="consultaForm.get('tipo')?.invalid && consultaForm.get('tipo')?.touched"
-          >
-            <option value="">Seleccione el tipo</option>
-            <option value="consulta_general">Consulta General</option>
-            <option value="especialidad">Especialidad</option>
-            <option value="urgencia">Urgencia</option>
-            <option value="control">Control</option>
-          </select>
-          <div *ngIf="consultaForm.get('tipo')?.invalid && consultaForm.get('tipo')?.touched" class="invalid-feedback">
-            Seleccione el tipo de consulta
-          </div>
+          <p-dropdown 
+            id="tipo"
+            formControlName="tipo"
+            [options]="tipoOptions"
+            placeholder="Seleccione el tipo de consulta"
+            [showClear]="true">
+          </p-dropdown>
+          <small class="p-error" *ngIf="consultaForm.get('tipo')?.invalid && consultaForm.get('tipo')?.touched">
+            El tipo de consulta es requerido
+          </small>
         </div>
 
-        <div class="form-group">
+        <div class="p-field">
           <label for="horario">Horario *</label>
           <input 
             type="datetime-local" 
-            id="horario" 
-            formControlName="horario" 
-            class="form-control"
-            [class.is-invalid]="consultaForm.get('horario')?.invalid && consultaForm.get('horario')?.touched"
-          >
-          <div *ngIf="consultaForm.get('horario')?.invalid && consultaForm.get('horario')?.touched" class="invalid-feedback">
-            Seleccione fecha y hora
-          </div>
+            id="horario"
+            formControlName="horario"
+            class="p-inputtext p-component">
+          <small class="p-error" *ngIf="consultaForm.get('horario')?.invalid && consultaForm.get('horario')?.touched">
+            El horario es requerido
+          </small>
         </div>
 
-        <div class="form-group">
+        <div class="p-field">
           <label for="diagnostico">Diagnóstico</label>
           <textarea 
-            id="diagnostico" 
-            formControlName="diagnostico" 
-            class="form-control"
+            id="diagnostico"
+            formControlName="diagnostico"
             rows="3"
-            placeholder="Diagnóstico (opcional)"
-          ></textarea>
+            class="p-inputtext p-component"
+            placeholder="Ingrese el diagnóstico">
+          </textarea>
         </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" [disabled]="consultaForm.invalid">
-            {{ editingConsulta ? 'Actualizar' : 'Crear' }}
-          </button>
+        <div class="p-field">
+          <label for="costo">Costo</label>
+          <input 
+            type="number" 
+            id="costo"
+            formControlName="costo"
+            class="p-inputtext p-component"
+            placeholder="0.00"
+            step="0.01"
+            min="0">
         </div>
-      </form>
-    </div>
-  </div>
+      </div>
+    </form>
+    
+    <ng-template pTemplate="footer">
+      <div class="form-actions">
+        <p-button 
+          label="Cancelar" 
+          icon="pi pi-times" 
+          styleClass="p-button-text"
+          (click)="closeForm()">
+        </p-button>
+        <p-button 
+          [label]="editingConsulta ? 'Actualizar' : 'Crear'" 
+          icon="pi pi-check" 
+          (click)="onSubmit()"
+          [disabled]="consultaForm.invalid">
+        </p-button>
+      </div>
+    </ng-template>
+  </p-dialog>
 </div>

@@ -18,19 +18,20 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/register`, userData);
   }
 
-  // Nuevo método para verificar si el usuario está autenticado
+
   isAuthenticated(): boolean {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('access_token');
     return !!token;
   }
 
-  // Nuevo método para obtener el token
+
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return localStorage.getItem('access_token');
   }
 
-  // Nuevo método para logout
+
   logout(): void {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
   }
 }

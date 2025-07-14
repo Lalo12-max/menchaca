@@ -5,7 +5,6 @@ import { Router, RouterModule } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
-import { DropdownModule } from 'primeng/dropdown';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { DialogModule } from 'primeng/dialog';
@@ -21,7 +20,6 @@ import { AuthService } from '../../../services/auth.service';
     ButtonModule,
     InputTextModule,
     PasswordModule,
-    DropdownModule,
     CardModule,
     MessageModule,
     DialogModule
@@ -87,12 +85,10 @@ export class RegisterComponent {
   registerForm: FormGroup;
   isLoading = false;
   
-  // Variables para MFA
   showMFADialog = false;
   qrCodeUrl = '';
   secretKey = '';
   
-  // Estado de validación de contraseña
   passwordValidation = {
     length: false,
     hasNumber: false,
@@ -100,13 +96,6 @@ export class RegisterComponent {
     hasUpper: false,
     hasSymbol: false
   };
-  
-  tiposUsuario = [
-    { label: 'Médico', value: 'medico' },
-    { label: 'Enfermera', value: 'enfermera' },
-    { label: 'Administrador', value: 'admin' },
-    { label: 'Paciente', value: 'paciente' }
-  ];
 
   constructor(
     private fb: FormBuilder,
@@ -116,13 +105,11 @@ export class RegisterComponent {
     this.registerForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      tipo: ['', [Validators.required]],
       password: ['', [Validators.required, this.passwordStrengthValidator.bind(this)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
 
-  // Validador personalizado para la fortaleza de la contraseña
   passwordStrengthValidator(control: any) {
     const password = control.value;
     if (!password) return null;
@@ -171,7 +158,7 @@ export class RegisterComponent {
       const registerData = {
         nombre: this.registerForm.value.nombre,
         email: this.registerForm.value.email,
-        tipo: this.registerForm.value.tipo,
+        tipo: 'paciente', 
         password: this.registerForm.value.password
       };
       
@@ -179,10 +166,7 @@ export class RegisterComponent {
         next: (response) => {
           console.log('Registro exitoso:', response);
           
-          // Verificar si es registro exitoso (código S03)
           if (response.intcode === 'S03') {
-              // Los datos MFA están en response.data
-              // En el método onSubmit, después del registro exitoso
               if (response.data?.qr_code_url && response.data?.secret_key) {
                 this.qrCodeUrl = response.data.qr_code_url;
                 this.secretKey = response.data.secret_key;
@@ -191,7 +175,6 @@ export class RegisterComponent {
                 this.router.navigate(['/login']);
               }
           } else {
-              // Manejar errores del servidor
               const errorMessage = response.data?.error || response.data?.message || 'Error en el registro';
               alert(`Error (${response.intcode}): ${errorMessage}`);
           }
@@ -216,14 +199,12 @@ export class RegisterComponent {
     }
   }
 
-  // Método para continuar después de configurar MFA
   continuarAlLogin() {
     this.showMFADialog = false;
     alert('MFA configurado exitosamente! Ahora puedes iniciar sesión.');
     this.router.navigate(['/login']);
   }
 
-  // Método para copiar la clave secreta
   copiarClaveSecreta() {
     navigator.clipboard.writeText(this.secretKey).then(() => {
       alert('Clave secreta copiada al portapapeles');

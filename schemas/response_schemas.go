@@ -7,9 +7,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-// Esquemas JSON para validación de respuestas
 var (
-	// Esquema para respuesta de registro
 	RegisterResponseSchema = `{
 		"type": "object",
 		"properties": {
@@ -33,7 +31,6 @@ var (
 		"required": ["user", "mfa_secret", "qr_code_url", "message"]
 	}`
 
-	// Esquema para respuesta de login exitoso
 	LoginSuccessResponseSchema = `{
 		"type": "object",
 		"properties": {
@@ -57,7 +54,6 @@ var (
 		"required": ["access_token", "refresh_token", "user"]
 	}`
 
-	// Esquema para respuesta de MFA requerido
 	LoginMFARequiredSchema = `{
 		"type": "object",
 		"properties": {
@@ -66,7 +62,6 @@ var (
 		"required": ["requires_mfa"]
 	}`
 
-	// Esquema para respuesta de refresh token
 	RefreshTokenResponseSchema = `{
 		"type": "object",
 		"properties": {
@@ -75,7 +70,6 @@ var (
 		"required": ["access_token"]
 	}`
 
-	// Esquema para respuestas de error
 	ErrorResponseSchema = `{
 		"type": "object",
 		"properties": {
@@ -86,7 +80,7 @@ var (
 		"required": ["error"]
 	}`
 
-	// Esquema para respuesta de habilitación MFA
+	
 	EnableMFAResponseSchema = `{
 		"type": "object",
 		"properties": {
@@ -102,25 +96,20 @@ var (
 	}`
 )
 
-// ValidateResponse valida una respuesta JSON contra un esquema
 func ValidateResponse(responseData interface{}, schemaString string) error {
-	// Convertir la respuesta a JSON
 	responseJSON, err := json.Marshal(responseData)
 	if err != nil {
 		return fmt.Errorf("error al serializar respuesta: %v", err)
 	}
 
-	// Crear loaders para el esquema y los datos
 	schemaLoader := gojsonschema.NewStringLoader(schemaString)
 	documentLoader := gojsonschema.NewBytesLoader(responseJSON)
 
-	// Validar
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 	if err != nil {
 		return fmt.Errorf("error en validación: %v", err)
 	}
 
-	// Verificar si es válido
 	if !result.Valid() {
 		errorMessages := make([]string, len(result.Errors()))
 		for i, desc := range result.Errors() {
@@ -132,32 +121,26 @@ func ValidateResponse(responseData interface{}, schemaString string) error {
 	return nil
 }
 
-// ValidateRegisterResponse valida respuesta de registro
 func ValidateRegisterResponse(response interface{}) error {
 	return ValidateResponse(response, RegisterResponseSchema)
 }
 
-// ValidateLoginSuccessResponse valida respuesta de login exitoso
 func ValidateLoginSuccessResponse(response interface{}) error {
 	return ValidateResponse(response, LoginSuccessResponseSchema)
 }
 
-// ValidateLoginMFAResponse valida respuesta de MFA requerido
 func ValidateLoginMFAResponse(response interface{}) error {
 	return ValidateResponse(response, LoginMFARequiredSchema)
 }
 
-// ValidateRefreshTokenResponse valida respuesta de refresh token
 func ValidateRefreshTokenResponse(response interface{}) error {
 	return ValidateResponse(response, RefreshTokenResponseSchema)
 }
 
-// ValidateErrorResponse valida respuesta de error
 func ValidateErrorResponse(response interface{}) error {
 	return ValidateResponse(response, ErrorResponseSchema)
 }
 
-// ValidateEnableMFAResponse valida respuesta de habilitación MFA
 func ValidateEnableMFAResponse(response interface{}) error {
 	return ValidateResponse(response, EnableMFAResponseSchema)
 }

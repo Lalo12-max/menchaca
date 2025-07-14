@@ -1,107 +1,168 @@
 <div class="consultorios-container">
+  <p-toast></p-toast>
+  
   <div class="header">
     <h2>Gestión de Consultorios</h2>
-    <button class="btn btn-primary" (click)="openCreateForm()">
-      <i class="fas fa-plus"></i> Nuevo Consultorio
-    </button>
+    <p-button 
+      label="Nuevo Consultorio" 
+      icon="pi pi-plus" 
+      styleClass="p-button-primary"
+      (onClick)="openCreateForm()">
+    </p-button>
   </div>
 
   <div *ngIf="loading" class="loading">
-    <i class="fas fa-spinner fa-spin"></i> Cargando...
+    <i class="pi pi-spin pi-spinner"></i> Cargando...
   </div>
 
-  <div *ngIf="!loading" class="table-container">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nombre</th>
-          <th>Ubicación</th>
-          <th>Capacidad</th>
-          <th>Equipamiento</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let consultorio of consultorios">
-          <td>{{ consultorio.id_consultorio }}</td>
-          <td>{{ consultorio.nombre }}</td>
-          <td>{{ consultorio.ubicacion || 'N/A' }}</td>
-          <td>{{ consultorio.capacidad || 'N/A' }}</td>
-          <td>{{ consultorio.equipamiento || 'N/A' }}</td>
-          <td>
-            <button class="btn btn-sm btn-secondary" (click)="openEditForm(consultorio)">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" (click)="deleteConsultorio(consultorio.id_consultorio!)">
-              <i class="fas fa-trash"></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <p-table 
+    *ngIf="!loading"
+    [value]="consultorios" 
+    [paginator]="true" 
+    [rows]="10"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} consultorios"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    styleClass="p-datatable-striped">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Tipo</th>
+        <th>Ubicación</th>
+        <th>Médico Asignado</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-consultorio>
+      <tr>
+        <td>
+          <p-tag [value]="consultorio.id_consultorio.toString()" severity="info"></p-tag>
+        </td>
+        <td>{{ consultorio.nombre }}</td>
+        <td>
+          <p-tag 
+            [value]="consultorio.tipo" 
+            [severity]="getTipoSeverity(consultorio.tipo)">
+          </p-tag>
+        </td>
+        <td>{{ consultorio.ubicacion || 'N/A' }}</td>
+        <td>
+          <span 
+            [pTooltip]="getMedicoNombre(consultorio.medico_id!) !== 'N/A' ? 'Médico: ' + getMedicoNombre(consultorio.medico_id!) : 'Sin médico asignado'"
+            tooltipPosition="top">
+            {{ getMedicoNombre(consultorio.medico_id!) }}
+          </span>
+        </td>
+        <td>
+          <p-button 
+            icon="pi pi-pencil" 
+            styleClass="p-button-secondary p-button-sm"
+            [pTooltip]="'Editar consultorio'"
+            tooltipPosition="top"
+            (onClick)="openEditForm(consultorio)">
+          </p-button>
+          <p-button 
+            icon="pi pi-trash" 
+            styleClass="p-button-danger p-button-sm"
+            [pTooltip]="'Eliminar consultorio'"
+            tooltipPosition="top"
+            (onClick)="deleteConsultorio(consultorio.id_consultorio!)">
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
 
-  <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ editingConsultorio ? 'Editar Consultorio' : 'Nuevo Consultorio' }}</h3>
-        <button class="btn-close" (click)="closeForm()">&times;</button>
+  <p-dialog 
+    [header]="editingConsultorio ? 'Editar Consultorio' : 'Nuevo Consultorio'"
+    [(visible)]="showForm"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="consultorio-dialog"
+    [style]="{width: '600px', maxWidth: '90vw'}">
+    
+    <form [formGroup]="consultorioForm" (ngSubmit)="onSubmit()">
+      <div class="p-field">
+        <label for="nombre">Nombre *</label>
+        <input 
+          type="text" 
+          id="nombre" 
+          formControlName="nombre" 
+          pInputText
+          placeholder="Nombre del consultorio"
+          [class.ng-invalid]="consultorioForm.get('nombre')?.invalid && consultorioForm.get('nombre')?.touched"
+          [class.ng-touched]="consultorioForm.get('nombre')?.touched">
+        <small 
+          *ngIf="consultorioForm.get('nombre')?.invalid && consultorioForm.get('nombre')?.touched" 
+          class="p-error">
+          El nombre es requerido (mínimo 2 caracteres)
+        </small>
       </div>
-      
-      <form [formGroup]="consultorioForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="nombre">Nombre *</label>
-          <input 
-            type="text" 
-            id="nombre" 
-            formControlName="nombre" 
-            class="form-control"
-            [class.is-invalid]="consultorioForm.get('nombre')?.invalid && consultorioForm.get('nombre')?.touched"
-          >
-          <div *ngIf="consultorioForm.get('nombre')?.invalid && consultorioForm.get('nombre')?.touched" class="invalid-feedback">
-            El nombre es requerido
-          </div>
-        </div>
 
-        <div class="form-group">
-          <label for="ubicacion">Ubicación</label>
-          <input 
-            type="text" 
-            id="ubicacion" 
-            formControlName="ubicacion" 
-            class="form-control"
-          >
-        </div>
+      <div class="p-field">
+        <label for="tipo">Tipo *</label>
+        <p-dropdown 
+          id="tipo"
+          formControlName="tipo"
+          [options]="tiposConsultorio"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleccionar tipo de consultorio"
+          [class.ng-invalid]="consultorioForm.get('tipo')?.invalid && consultorioForm.get('tipo')?.touched"
+          [class.ng-touched]="consultorioForm.get('tipo')?.touched">
+        </p-dropdown>
+        <small 
+          *ngIf="consultorioForm.get('tipo')?.invalid && consultorioForm.get('tipo')?.touched" 
+          class="p-error">
+          El tipo es requerido
+        </small>
+      </div>
 
-        <div class="form-group">
-          <label for="capacidad">Capacidad</label>
-          <input 
-            type="number" 
-            id="capacidad" 
-            formControlName="capacidad" 
-            class="form-control"
-            min="1"
-          >
-        </div>
+      <div class="p-field">
+        <label for="ubicacion">Ubicación</label>
+        <input 
+          type="text" 
+          id="ubicacion" 
+          formControlName="ubicacion" 
+          pInputText
+          placeholder="Ej: Piso 2, Ala Norte">
+      </div>
 
-        <div class="form-group">
-          <label for="equipamiento">Equipamiento</label>
-          <textarea 
-            id="equipamiento" 
-            formControlName="equipamiento" 
-            class="form-control"
-            rows="3"
-          ></textarea>
-        </div>
+      <div class="p-field">
+        <label for="medico_id">Médico Asignado</label>
+        <p-dropdown 
+          id="medico_id"
+          formControlName="medico_id"
+          [options]="medicos"
+          optionLabel="nombre"
+          optionValue="id_usuario"
+          placeholder="Seleccione un médico (opcional)"
+          [showClear]="true">
+        </p-dropdown>
+      </div>
+    </form>
+    
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        styleClass="p-button-secondary"
+        (onClick)="closeForm()">
+      </p-button>
+      <p-button 
+        [label]="editingConsultorio ? 'Actualizar' : 'Crear'" 
+        [icon]="editingConsultorio ? 'pi pi-check' : 'pi pi-plus'"
+        styleClass="p-button-primary"
+        [disabled]="consultorioForm.invalid"
+        (onClick)="onSubmit()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
 
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" [disabled]="consultorioForm.invalid">
-            {{ editingConsultorio ? 'Actualizar' : 'Crear' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <p-confirmDialog></p-confirmDialog>
 </div>

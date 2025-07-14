@@ -41,23 +41,6 @@
       </div>
       
       <div class="p-field">
-        <label for="tipo">Tipo de Usuario</label>
-        <p-dropdown 
-          formControlName="tipo" 
-          [options]="tiposUsuario" 
-          placeholder="Selecciona el tipo de usuario"
-          optionLabel="label" 
-          optionValue="value"
-        ></p-dropdown>
-        <small 
-          class="p-error" 
-          *ngIf="registerForm.get('tipo')?.invalid && registerForm.get('tipo')?.touched"
-        >
-          Debes seleccionar un tipo de usuario
-        </small>
-      </div>
-      
-      <div class="p-field">
         <label for="password">Contraseña</label>
         <p-password 
           formControlName="password" 
@@ -67,7 +50,6 @@
           (input)="onPasswordChange($event)"
         ></p-password>
         
-        <!-- Indicadores de validación de contraseña -->
         <div class="password-requirements" *ngIf="registerForm.get('password')?.value">
           <div class="requirement-item" [class.valid]="passwordValidation.length">
             <i class="pi" [class.pi-check]="passwordValidation.length" [class.pi-times]="!passwordValidation.length"></i>
@@ -130,7 +112,6 @@
     </div>
   </p-card>
 
-  <!-- Diálogo MFA -->
   <p-dialog 
     header="Configurar Autenticación de Dos Factores (MFA)" 
     [(visible)]="showMFADialog" 
@@ -140,13 +121,8 @@
   >
     <div class="mfa-dialog">
       <p>Para completar tu registro, configura la autenticación de dos factores:</p>
-      
-      <h4>Paso 1: Escanea el código QR</h4>
-      <div class="qr-code">
-        <img [src]="qrCodeUrl" alt="Código QR MFA" style="max-width: 200px;" />
-      </div>
-      
-      <h4>Paso 2: O ingresa manualmente esta clave</h4>
+
+      <h4>Ingresa manualmente esta clave</h4>
       <div class="secret-key">
         {{ secretKey }}
         <p-button 
@@ -157,8 +133,6 @@
           pTooltip="Copiar clave secreta"
         ></p-button>
       </div>
-      
-      <p><strong>Importante:</strong> Usa una app como Google Authenticator, Authy o similar para escanear el código.</p>
       
       <p-button 
         label="Continuar al Login" 

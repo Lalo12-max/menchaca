@@ -28,6 +28,8 @@ func main() {
 	app.Use(middleware.ResponseValidator()) // Para logging de validación
 	// app.Use(middleware.StrictResponseValidator()) // Versión estricta que devuelve error
 
+	// Agregar después de las configuraciones de CORS y antes de las rutas
+	app.Use(middleware.LoggerMiddleware())
 	routes.SetupRoutes(app)
 
 	port := os.Getenv("PORT")

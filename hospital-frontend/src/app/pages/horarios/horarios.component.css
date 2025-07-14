@@ -1,3 +1,5 @@
+@import 'primeicons/primeicons.css';
+
 .horarios-container {
   padding: 20px;
   max-width: 1200px;
@@ -94,27 +96,408 @@
   background-color: #f8f9fa;
 }
 
+.alert {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  position: relative;
+}
+
+.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.btn-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: inherit;
+}
+
+.btn-close:hover {
+  opacity: 0.7;
+}
+
 .badge {
   padding: 4px 8px;
-  border-radius: 12px;
+  border-radius: 4px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: bold;
   text-transform: capitalize;
 }
 
 .badge-mañana {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.badge-tarde {
   background-color: #fff3cd;
   color: #856404;
 }
 
-.badge-tarde {
+.badge-noche {
   background-color: #d1ecf1;
   color: #0c5460;
 }
 
-.badge-noche {
-  background-color: #d4edda;
-  color: #155724;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+}
+
+.btn-close:hover {
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+.form-group:first-child {
+  padding-top: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-control.is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid #dee2e6;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.p-button {
+  background-color: var(--primary-color, #007bff);
+  border: 1px solid var(--primary-color, #007bff);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.p-button:hover {
+  background-color: var(--primary-color-dark, #0056b3);
+  border-color: var(--primary-color-dark, #0056b3);
+}
+
+.p-button.p-button-secondary {
+  background-color: var(--surface-600, #6c757d);
+  border-color: var(--surface-600, #6c757d);
+}
+
+.p-button.p-button-secondary:hover {
+  background-color: var(--surface-700, #545b62);
+  border-color: var(--surface-700, #545b62);
+}
+
+.p-button.p-button-danger {
+  background-color: var(--red-500, #dc3545);
+  border-color: var(--red-500, #dc3545);
+}
+
+.p-button.p-button-danger:hover {
+  background-color: var(--red-600, #c82333);
+  border-color: var(--red-600, #c82333);
+}
+
+.p-button.p-button-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.p-datatable {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.p-datatable .p-datatable-header {
+  background-color: var(--surface-50, #f8f9fa);
+  border-bottom: 2px solid var(--surface-200, #dee2e6);
+  padding: 1rem;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background-color: var(--surface-50, #f8f9fa);
+  color: var(--text-color-secondary, #495057);
+  font-weight: 600;
+  padding: 0.75rem;
+  border-bottom: 2px solid var(--surface-200, #dee2e6);
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--surface-200, #dee2e6);
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background-color: var(--surface-50, #f8f9fa);
+}
+
+.p-dialog {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.p-dialog .p-dialog-header {
+  background-color: var(--surface-50, #f8f9fa);
+  border-bottom: 1px solid var(--surface-200, #dee2e6);
+  padding: 1rem 1.25rem;
+}
+
+.p-dialog .p-dialog-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color, #2c3e50);
+}
+
+.p-dialog .p-dialog-content {
+  padding: 1.25rem;
+}
+
+.p-dialog .p-dialog-footer {
+  background-color: var(--surface-50, #f8f9fa);
+  border-top: 1px solid var(--surface-200, #dee2e6);
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.p-dropdown {
+  width: 100%;
+  border: 1px solid var(--surface-300, #ced4da);
+  border-radius: 4px;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.p-dropdown:not(.p-disabled):hover {
+  border-color: var(--primary-color, #007bff);
+}
+
+.p-dropdown:not(.p-disabled).p-focus {
+  outline: none;
+  border-color: var(--primary-color, #80bdff);
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.p-dropdown.ng-invalid.ng-touched {
+  border-color: var(--red-500, #dc3545);
+}
+
+.p-dropdown.ng-invalid.ng-touched.p-focus {
+  border-color: var(--red-500, #dc3545);
+  box-shadow: 0 0 0 0.2rem rgba(220,53,69,.25);
+}
+
+.p-field {
+  margin-bottom: 1rem;
+}
+
+.p-field label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-color-secondary, #495057);
+}
+
+.p-error {
+  display: block;
+  color: var(--red-500, #dc3545);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.p-message {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.p-message.p-message-error {
+  color: var(--red-800, #721c24);
+  background-color: var(--red-100, #f8d7da);
+  border-color: var(--red-200, #f5c6cb);
+}
+
+.p-message.p-message-success {
+  color: var(--green-800, #155724);
+  background-color: var(--green-100, #d4edda);
+  border-color: var(--green-200, #c3e6cb);
+}
+
+.p-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1200;
+}
+
+.p-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.p-tag.p-tag-success {
+  background-color: var(--green-100, #d4edda);
+  color: var(--green-800, #155724);
+}
+
+.p-tag.p-tag-info {
+  background-color: var(--blue-100, #d1ecf1);
+  color: var(--blue-800, #0c5460);
+}
+
+.p-tag.p-tag-warning {
+  background-color: var(--yellow-100, #fff3cd);
+  color: var(--yellow-800, #856404);
+}
+
+.p-tooltip {
+  position: absolute;
+  background-color: var(--surface-900, #212529);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  z-index: 1100;
+}
+
+.p-confirm-dialog {
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.p-confirm-dialog .p-dialog-header {
+  background-color: var(--surface-50, #f8f9fa);
+  border-bottom: 1px solid var(--surface-200, #dee2e6);
+}
+
+.p-confirm-dialog .p-dialog-footer {
+  background-color: var(--surface-50, #f8f9fa);
+  border-top: 1px solid var(--surface-200, #dee2e6);
+}
+
+.turno-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.turno-badge.manana {
+  background-color: var(--green-100, #d4edda);
+  color: var(--green-800, #155724);
+}
+
+.turno-badge.tarde {
+  background-color: var(--yellow-100, #fff3cd);
+  color: var(--yellow-800, #856404);
+}
+
+.turno-badge.noche {
+  background-color: var(--blue-100, #d1ecf1);
+  color: var(--blue-800, #0c5460);
 }
 
 .modal-overlay {

@@ -27,6 +27,6 @@ export const appConfig: ApplicationConfig = {
         preset: Aura
       }
     }),
-    LoadingService // Agregar el servicio de loading
+    LoadingService 
   ]
 };

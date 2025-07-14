@@ -7,8 +7,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
-import { ToastModule } from 'primeng/toast'; // Agregar ToastModule
-import { MessageService } from 'primeng/api'; // Agregar MessageService
+import { ToastModule } from 'primeng/toast';
+import { DialogModule } from 'primeng/dialog'; 
+import { MessageService } from 'primeng/api';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
@@ -23,27 +24,62 @@ import { AuthService } from '../../../services/auth.service';
     PasswordModule,
     CardModule,
     MessageModule,
-    ToastModule // Agregar ToastModule a los imports
+    ToastModule,
+    DialogModule 
   ],
-  providers: [MessageService], // Agregar MessageService como provider
-  templateUrl: './login.component.html',  // ← Cambio aquí: de 'template' a 'templateUrl'
-  styles: []
+  providers: [MessageService],
+  templateUrl: './login.component.html',
+  styles: [`
+    .mfa-config-content {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .secret-key {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .backup-codes {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .backup-code {
+      background: #f0f0f0;
+      padding: 8px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .instructions ol {
+      padding-left: 20px;
+    }
+    .instructions li {
+      margin-bottom: 8px;
+    }
+  `]
 })
 export class LoginComponent {
   loginForm: FormGroup;
   isLoading = false;
-  showMFAInput = true; // Cambiar a true para que aparezca siempre
+  showMFAInput = true;
+  showMFAConfigDialog = false; 
+  mfaConfigData: any = null; 
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private authService: AuthService,
-    private messageService: MessageService // Inyectar MessageService
+    private messageService: MessageService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required]],
-      totp_code: [''] // Campo opcional para MFA, siempre visible
+      totp_code: ['']
     });
   }
 
@@ -61,28 +97,35 @@ export class LoginComponent {
         next: (response) => {
           console.log('Respuesta completa del servidor:', response);
           
-          // Si el servidor requiere MFA pero no se proporcionó
+          if (response.intcode === 'MFA_AUTO_CONFIGURED') {
+            this.mfaConfigData = response.data;
+            this.showMFAConfigDialog = true;
+            this.isLoading = false;
+            return;
+          }
+          
           if (response.intcode === 'S02' || response.data?.requires_mfa) {
-            // El campo ya está visible, solo mostrar mensaje
             this.messageService.add({
               severity: 'warn',
               summary: 'MFA Requerido',
               detail: 'Por favor ingresa tu código de autenticación de 6 dígitos'
             });
-            // Hacer el campo MFA obligatorio
             this.loginForm.get('totp_code')?.setValidators([Validators.required]);
             this.loginForm.get('totp_code')?.updateValueAndValidity();
             return;
           }
           
-          // Verificar si es login exitoso
           if (response.intcode === 'S01') {
             console.log('Login exitoso:', response);
             
             const token = response.data?.access_token;
+            const refreshToken = response.data?.refresh_token;
             
             if (token) {
-              localStorage.setItem('token', token);
+              localStorage.setItem('access_token', token);
+              if (refreshToken) {
+                localStorage.setItem('refresh_token', refreshToken);
+              }
               console.log('Token guardado exitosamente:', token.substring(0, 20) + '...');
               this.router.navigate(['/dashboard']);
             } else {
@@ -115,6 +158,33 @@ export class LoginComponent {
         }
       });
     }
+  }
+
+  closeMFADialog() {
+    this.showMFAConfigDialog = false;
+    this.mfaConfigData = null;
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'MFA Configurado',
+      detail: 'Tu autenticación de dos factores ha sido configurada exitosamente'
+    });
+    
+    if (this.mfaConfigData?.user) {
+      setTimeout(() => {
+        this.router.navigate(['/dashboard']);
+      }, 2000);
+    }
+  }
+
+  copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Copiado',
+        detail: 'Texto copiado al portapapeles'
+      });
+    });
   }
 
   goToRegister(event: Event) {

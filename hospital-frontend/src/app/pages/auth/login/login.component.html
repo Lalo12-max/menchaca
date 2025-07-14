@@ -1,5 +1,47 @@
 <div class="auth-form-container">
   <p-toast></p-toast>
+  
+  <p-dialog 
+    header="¡MFA Configurado Automáticamente!" 
+    [(visible)]="showMFAConfigDialog" 
+    [modal]="true" 
+    [closable]="false"
+    [style]="{width: '600px'}"
+    styleClass="mfa-config-dialog"
+  >
+    <div class="mfa-config-content" *ngIf="mfaConfigData">
+      <div class="text-center mb-4">
+        <i class="pi pi-check-circle" style="font-size: 3rem; color: #4CAF50;"></i>
+        <h3>¡Autenticación de Dos Factores Configurada!</h3>
+        <p>Se ha configurado automáticamente tu MFA para mayor seguridad.</p>
+      </div>
+      
+      <div class="mfa-info">
+        
+        
+        <h4>🔑 Clave secreta (alternativa al QR):</h4>
+        <div class="secret-key mb-3">
+          <code>{{ mfaConfigData.secret_key }}</code>
+          <p-button 
+            icon="pi pi-copy" 
+            (click)="copyToClipboard(mfaConfigData.secret_key)"
+            [text]="true"
+            size="small"
+          ></p-button>
+        </div>
+        
+      </div>
+    </div>
+    
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Entendido, Continuar" 
+        (click)="closeMFADialog()" 
+        styleClass="p-button-success"
+      ></p-button>
+    </ng-template>
+  </p-dialog>
+  
   <p-card class="p-card">
     <ng-template pTemplate="header">
       <div class="text-center">
@@ -44,9 +86,8 @@
         </small>
       </div>
       
-      <!-- Campo MFA siempre visible -->
       <div class="p-field">
-        <label for="totp_code">Código MFA (Opcional)</label>
+        <label for="totp_code">Código MFA (Opcional si que te dieron tus credenciales directamente)</label>
         <input 
           pInputText 
           id="totp_code" 

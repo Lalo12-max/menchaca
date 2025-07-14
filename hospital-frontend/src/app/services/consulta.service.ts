@@ -20,6 +20,8 @@ export class ConsultaService {
   }
 
   createConsulta(consulta: CreateConsultaRequest): Observable<Consulta> {
+    console.log('🌐 Enviando POST a:', this.apiUrl);
+    console.log('📦 Datos a enviar:', consulta);
     return this.http.post<Consulta>(this.apiUrl, consulta);
   }
 

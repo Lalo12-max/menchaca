@@ -1,170 +1,232 @@
 <div class="recetas-container">
   <div class="header">
     <h1>Gestión de Recetas</h1>
-    <button class="btn btn-primary" (click)="openModal()">
-      <i class="fas fa-plus"></i> Nueva Receta
-    </button>
+    <p-button 
+      label="Nueva Receta" 
+      icon="pi pi-plus" 
+      (onClick)="openModal()"
+      styleClass="p-button-primary">
+    </p-button>
   </div>
 
-  <div *ngIf="error" class="alert alert-danger">
-    {{ error }}
-  </div>
+  <p-message 
+    *ngIf="error" 
+    severity="error" 
+    [text]="error">
+  </p-message>
 
   <div *ngIf="loading" class="loading">
-    Cargando...
+    <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+    <p>Cargando recetas...</p>
   </div>
 
-  <div class="table-container" *ngIf="!loading">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Fecha</th>
-          <th>Médico ID</th>
-          <th>Paciente ID</th>
-          <th>Consultorio ID</th>
-          <th>Medicamento</th>
-          <th>Dosis</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let receta of recetas">
-          <td>{{ receta.id_receta }}</td>
-          <td>{{ formatDate(receta.fecha) }}</td>
-          <td>{{ receta.medico_id }}</td>
-          <td>{{ receta.paciente_id }}</td>
-          <td>{{ receta.consultorio_id }}</td>
-          <td>{{ receta.medicamento || 'N/A' }}</td>
-          <td>{{ receta.dosis || 'N/A' }}</td>
-          <td>
-            <button class="btn btn-sm btn-secondary" (click)="openModal(receta)">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" (click)="deleteReceta(receta.id_receta!)">
-              <i class="fas fa-trash"></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <p-table 
+    *ngIf="!loading"
+    [value]="recetas" 
+    [paginator]="true" 
+    [rows]="10"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} recetas"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    styleClass="p-datatable-striped"
+    responsiveLayout="scroll">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="id_receta">
+          ID <p-sortIcon field="id_receta"></p-sortIcon>
+        </th>
+        <th pSortableColumn="fecha">
+          Fecha <p-sortIcon field="fecha"></p-sortIcon>
+        </th>
+        <th>Médico ID</th>
+        <th>Paciente ID</th>
+        <th>Consultorio ID</th>
+        <th pSortableColumn="medicamento">
+          Medicamento <p-sortIcon field="medicamento"></p-sortIcon>
+        </th>
+        <th>Dosis</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-receta>
+      <tr>
+        <td>
+          <p-tag [value]="receta.id_receta.toString()" severity="info"></p-tag>
+        </td>
+        <td>{{ formatDate(receta.fecha) }}</td>
+        <td>{{ receta.medico_id }}</td>
+        <td>{{ receta.paciente_id }}</td>
+        <td>{{ receta.consultorio_id }}</td>
+        <td>
+          <span pTooltip="{{ receta.medicamento || 'No especificado' }}" tooltipPosition="top">
+            {{ (receta.medicamento || 'N/A') | slice:0:20 }}
+            <span *ngIf="receta.medicamento && receta.medicamento.length > 20">...</span>
+          </span>
+        </td>
+        <td>
+          <span pTooltip="{{ receta.dosis || 'No especificado' }}" tooltipPosition="top">
+            {{ (receta.dosis || 'N/A') | slice:0:15 }}
+            <span *ngIf="receta.dosis && receta.dosis.length > 15">...</span>
+          </span>
+        </td>
+        <td>
+          <p-button 
+            icon="pi pi-pencil" 
+            styleClass="p-button-rounded p-button-text p-button-secondary p-button-sm"
+            (onClick)="openModal(receta)"
+            pTooltip="Editar receta"
+            tooltipPosition="top">
+          </p-button>
+          <p-button 
+            icon="pi pi-trash" 
+            styleClass="p-button-rounded p-button-text p-button-danger p-button-sm"
+            (onClick)="deleteReceta(receta.id_receta!)"
+            pTooltip="Eliminar receta"
+            tooltipPosition="top">
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 2rem;">
+          <i class="pi pi-info-circle" style="font-size: 2rem; color: #6c757d;"></i>
+          <p style="margin-top: 1rem; color: #6c757d;">No se encontraron recetas</p>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
 
-  <!-- Modal -->
-  <div class="modal" [class.show]="isModalOpen" *ngIf="isModalOpen">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">
-            {{ isEditing ? 'Editar Receta' : 'Nueva Receta' }}
-          </h5>
-          <button type="button" class="btn-close" (click)="closeModal()">
-            <span>&times;</span>
-          </button>
-        </div>
-        <form [formGroup]="recetaForm" (ngSubmit)="onSubmit()">
-          <div class="modal-body">
-            <div *ngIf="error" class="alert alert-danger">
-              {{ error }}
-            </div>
-            
-            <div class="form-group">
-              <label for="fecha">Fecha *</label>
-              <input
-                type="date"
-                id="fecha"
-                class="form-control"
-                formControlName="fecha"
-                [class.is-invalid]="recetaForm.get('fecha')?.invalid && recetaForm.get('fecha')?.touched"
-              >
-              <div class="invalid-feedback" *ngIf="recetaForm.get('fecha')?.invalid && recetaForm.get('fecha')?.touched">
-                La fecha es requerida
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group col-md-4">
-                <label for="medico_id">ID Médico *</label>
-                <input
-                  type="number"
-                  id="medico_id"
-                  class="form-control"
-                  formControlName="medico_id"
-                  [class.is-invalid]="recetaForm.get('medico_id')?.invalid && recetaForm.get('medico_id')?.touched"
-                >
-                <div class="invalid-feedback" *ngIf="recetaForm.get('medico_id')?.invalid && recetaForm.get('medico_id')?.touched">
-                  ID del médico es requerido
-                </div>
-              </div>
-
-              <div class="form-group col-md-4">
-                <label for="paciente_id">ID Paciente *</label>
-                <input
-                  type="number"
-                  id="paciente_id"
-                  class="form-control"
-                  formControlName="paciente_id"
-                  [class.is-invalid]="recetaForm.get('paciente_id')?.invalid && recetaForm.get('paciente_id')?.touched"
-                >
-                <div class="invalid-feedback" *ngIf="recetaForm.get('paciente_id')?.invalid && recetaForm.get('paciente_id')?.touched">
-                  ID del paciente es requerido
-                </div>
-              </div>
-
-              <div class="form-group col-md-4">
-                <label for="consultorio_id">ID Consultorio *</label>
-                <input
-                  type="number"
-                  id="consultorio_id"
-                  class="form-control"
-                  formControlName="consultorio_id"
-                  [class.is-invalid]="recetaForm.get('consultorio_id')?.invalid && recetaForm.get('consultorio_id')?.touched"
-                >
-                <div class="invalid-feedback" *ngIf="recetaForm.get('consultorio_id')?.invalid && recetaForm.get('consultorio_id')?.touched">
-                  ID del consultorio es requerido
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="medicamento">Medicamento *</label>
-              <input
-                type="text"
-                id="medicamento"
-                class="form-control"
-                formControlName="medicamento"
-                [class.is-invalid]="recetaForm.get('medicamento')?.invalid && recetaForm.get('medicamento')?.touched"
-              >
-              <div class="invalid-feedback" *ngIf="recetaForm.get('medicamento')?.invalid && recetaForm.get('medicamento')?.touched">
-                El medicamento es requerido (mínimo 3 caracteres)
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="dosis">Dosis *</label>
-              <input
-                type="text"
-                id="dosis"
-                class="form-control"
-                formControlName="dosis"
-                placeholder="Ej: 500mg cada 8 horas"
-                [class.is-invalid]="recetaForm.get('dosis')?.invalid && recetaForm.get('dosis')?.touched"
-              >
-              <div class="invalid-feedback" *ngIf="recetaForm.get('dosis')?.invalid && recetaForm.get('dosis')?.touched">
-                La dosis es requerida (mínimo 2 caracteres)
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="closeModal()">
-              Cancelar
-            </button>
-            <button type="submit" class="btn btn-primary" [disabled]="recetaForm.invalid || loading">
-              {{ isEditing ? 'Actualizar' : 'Crear' }}
-            </button>
-          </div>
-        </form>
+  <p-dialog 
+    [header]="isEditing ? 'Editar Receta' : 'Nueva Receta'"
+    [(visible)]="isModalOpen"
+    [modal]="true"
+    [style]="{width: '600px'}"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="p-fluid">
+    
+    <form [formGroup]="recetaForm" (ngSubmit)="onSubmit()">
+      <p-message 
+        *ngIf="error" 
+        severity="error" 
+        [text]="error">
+      </p-message>
+      
+      <div class="p-field">
+        <label for="fecha">Fecha *</label>
+        <input 
+          pInputText 
+          type="date"
+          id="fecha"
+          formControlName="fecha"
+          [class.ng-invalid]="recetaForm.get('fecha')?.invalid && recetaForm.get('fecha')?.touched"
+          [class.ng-touched]="recetaForm.get('fecha')?.touched">
+        <small class="p-error" *ngIf="recetaForm.get('fecha')?.invalid && recetaForm.get('fecha')?.touched">
+          La fecha es requerida
+        </small>
       </div>
-    </div>
-  </div>
+
+      <div class="p-grid p-formgrid">
+        <div class="p-col-12 p-md-4">
+          <div class="p-field">
+            <label for="medico_id">ID Médico *</label>
+            <input 
+              pInputText 
+              type="number"
+              id="medico_id"
+              formControlName="medico_id"
+              [class.ng-invalid]="recetaForm.get('medico_id')?.invalid && recetaForm.get('medico_id')?.touched"
+              [class.ng-touched]="recetaForm.get('medico_id')?.touched">
+            <small class="p-error" *ngIf="recetaForm.get('medico_id')?.invalid && recetaForm.get('medico_id')?.touched">
+              ID del médico es requerido
+            </small>
+          </div>
+        </div>
+
+        <div class="p-col-12 p-md-4">
+          <div class="p-field">
+            <label for="paciente_id">ID Paciente *</label>
+            <input 
+              pInputText 
+              type="number"
+              id="paciente_id"
+              formControlName="paciente_id"
+              [class.ng-invalid]="recetaForm.get('paciente_id')?.invalid && recetaForm.get('paciente_id')?.touched"
+              [class.ng-touched]="recetaForm.get('paciente_id')?.touched">
+            <small class="p-error" *ngIf="recetaForm.get('paciente_id')?.invalid && recetaForm.get('paciente_id')?.touched">
+              ID del paciente es requerido
+            </small>
+          </div>
+        </div>
+
+        <div class="p-col-12 p-md-4">
+          <div class="p-field">
+            <label for="consultorio_id">ID Consultorio *</label>
+            <input 
+              pInputText 
+              type="number"
+              id="consultorio_id"
+              formControlName="consultorio_id"
+              [class.ng-invalid]="recetaForm.get('consultorio_id')?.invalid && recetaForm.get('consultorio_id')?.touched"
+              [class.ng-touched]="recetaForm.get('consultorio_id')?.touched">
+            <small class="p-error" *ngIf="recetaForm.get('consultorio_id')?.invalid && recetaForm.get('consultorio_id')?.touched">
+              ID del consultorio es requerido
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-field">
+        <label for="medicamento">Medicamento *</label>
+        <input 
+          pInputText 
+          type="text"
+          id="medicamento"
+          formControlName="medicamento"
+          placeholder="Nombre del medicamento"
+          [class.ng-invalid]="recetaForm.get('medicamento')?.invalid && recetaForm.get('medicamento')?.touched"
+          [class.ng-touched]="recetaForm.get('medicamento')?.touched">
+        <small class="p-error" *ngIf="recetaForm.get('medicamento')?.invalid && recetaForm.get('medicamento')?.touched">
+          El medicamento es requerido (mínimo 3 caracteres)
+        </small>
+      </div>
+
+      <div class="p-field">
+        <label for="dosis">Dosis *</label>
+        <input 
+          pInputText 
+          type="text"
+          id="dosis"
+          formControlName="dosis"
+          placeholder="Ej: 500mg cada 8 horas"
+          [class.ng-invalid]="recetaForm.get('dosis')?.invalid && recetaForm.get('dosis')?.touched"
+          [class.ng-touched]="recetaForm.get('dosis')?.touched">
+        <small class="p-error" *ngIf="recetaForm.get('dosis')?.invalid && recetaForm.get('dosis')?.touched">
+          La dosis es requerida (mínimo 2 caracteres)
+        </small>
+      </div>
+    </form>
+    
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        styleClass="p-button-text p-button-secondary"
+        (onClick)="closeModal()">
+      </p-button>
+      <p-button 
+        [label]="isEditing ? 'Actualizar' : 'Crear'" 
+        [icon]="loading ? 'pi pi-spin pi-spinner' : (isEditing ? 'pi pi-check' : 'pi pi-plus')"
+        styleClass="p-button-primary"
+        [disabled]="recetaForm.invalid || loading"
+        (onClick)="onSubmit()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-toast position="top-right"></p-toast>
 </div>

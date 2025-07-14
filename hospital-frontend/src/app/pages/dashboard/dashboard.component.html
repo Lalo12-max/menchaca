@@ -1,75 +1,112 @@
 <div class="dashboard-container">
+  <p-toast></p-toast>
+  
   <header class="dashboard-header">
     <h1>Sistema Hospitalario</h1>
     <div class="header-actions">
       <span class="welcome-text">Bienvenido al sistema</span>
-      <button class="btn btn-outline" (click)="logout()">
-        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-      </button>
+      <p-button 
+        label="Cerrar Sesión" 
+        icon="pi pi-sign-out" 
+        styleClass="p-button-outlined"
+        [pTooltip]="'Cerrar sesión del sistema'"
+        tooltipPosition="bottom"
+        (onClick)="logout()">
+      </p-button>
     </div>
   </header>
 
   <main class="dashboard-main">
     <div class="dashboard-grid">
-      <div class="dashboard-card" (click)="navigateTo('/usuarios')">
-        <div class="card-icon">
-          <i class="fas fa-users"></i>
-        </div>
+      <p-card 
+        [pTooltip]="'Gestión completa de usuarios del sistema'"
+        tooltipPosition="top"
+        (click)="navigateTo('/usuarios')">
+        <ng-template pTemplate="header">
+          <div class="card-icon">
+            <i class="pi pi-users"></i>
+          </div>
+        </ng-template>
         <div class="card-content">
           <h3>Usuarios</h3>
           <p>Gestión de usuarios del sistema</p>
         </div>
-      </div>
+      </p-card>
 
-      <div class="dashboard-card" (click)="navigateTo('/consultorios')">
-        <div class="card-icon">
-          <i class="fas fa-hospital"></i>
-        </div>
+      <p-card 
+        [pTooltip]="'Administración de consultorios médicos'"
+        tooltipPosition="top"
+        (click)="navigateTo('/consultorios')">
+        <ng-template pTemplate="header">
+          <div class="card-icon">
+            <i class="pi pi-building"></i>
+          </div>
+        </ng-template>
         <div class="card-content">
           <h3>Consultorios</h3>
           <p>Administrar consultorios médicos</p>
         </div>
-      </div>
+      </p-card>
 
-      <div class="dashboard-card" (click)="navigateTo('/consultas')">
-        <div class="card-icon">
-          <i class="fas fa-stethoscope"></i>
-        </div>
+      <p-card 
+        [pTooltip]="'Programar y gestionar consultas médicas'"
+        tooltipPosition="top"
+        (click)="navigateTo('/consultas')">
+        <ng-template pTemplate="header">
+          <div class="card-icon">
+            <i class="pi pi-heart"></i>
+          </div>
+        </ng-template>
         <div class="card-content">
           <h3>Consultas</h3>
           <p>Programar y gestionar consultas</p>
         </div>
-      </div>
+      </p-card>
 
-      <div class="dashboard-card" (click)="navigateTo('/expedientes')">
-        <div class="card-icon">
-          <i class="fas fa-folder-medical"></i>
-        </div>
+      <p-card 
+        [pTooltip]="'Historiales médicos completos de pacientes'"
+        tooltipPosition="top"
+        (click)="navigateTo('/expedientes')">
+        <ng-template pTemplate="header">
+          <div class="card-icon">
+            <i class="pi pi-folder"></i>
+          </div>
+        </ng-template>
         <div class="card-content">
           <h3>Expedientes</h3>
           <p>Historiales médicos de pacientes</p>
         </div>
-      </div>
+      </p-card>
 
-      <div class="dashboard-card" (click)="navigateTo('/horarios')">
-        <div class="card-icon">
-          <i class="fas fa-clock"></i>
-        </div>
+      <p-card 
+        [pTooltip]="'Gestión completa de horarios médicos'"
+        tooltipPosition="top"
+        (click)="navigateTo('/horarios')">
+        <ng-template pTemplate="header">
+          <div class="card-icon">
+            <i class="pi pi-clock"></i>
+          </div>
+        </ng-template>
         <div class="card-content">
           <h3>Horarios</h3>
           <p>Gestión de horarios médicos</p>
         </div>
-      </div>
+      </p-card>
 
-      <div class="dashboard-card" (click)="navigateTo('/recetas')">
-        <div class="card-icon">
-          <i class="fas fa-prescription-bottle-alt"></i>
-        </div>
+      <p-card 
+        [pTooltip]="'Prescripciones y recetas médicas'"
+        tooltipPosition="top"
+        (click)="navigateTo('/recetas')">
+        <ng-template pTemplate="header">
+          <div class="card-icon">
+            <i class="pi pi-file-edit"></i>
+          </div>
+        </ng-template>
         <div class="card-content">
           <h3>Recetas</h3>
           <p>Prescripciones médicas</p>
         </div>
-      </div>
+      </p-card>
     </div>
   </main>
 </div>

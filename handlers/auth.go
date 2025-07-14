@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"hospital-system/config"
 	"hospital-system/models"
-
-	// "hospital-system/schemas" <- Eliminar esta línea
 	"hospital-system/utils"
 	"log"
 	"time"
@@ -15,14 +13,10 @@ import (
 	"github.com/lib/pq"
 )
 
-// sendValidatedResponse envía una respuesta validada
 func sendValidatedResponse(c *fiber.Ctx, statusCode int, data interface{}, validator func(interface{}) error) error {
-	// Validar la respuesta antes de enviarla
 	if validator != nil {
 		if err := validator(data); err != nil {
 			log.Printf("Error de validación de respuesta: %v", err)
-			// En desarrollo, podrías querer mostrar el error
-			// En producción, enviar error genérico
 			return c.Status(500).JSON(utils.NewResponse(500, "E99", fiber.Map{
 				"error": "Error interno del servidor",
 				"code":  "INTERNAL_ERROR",
@@ -33,14 +27,13 @@ func sendValidatedResponse(c *fiber.Ctx, statusCode int, data interface{}, valid
 	return c.Status(statusCode).JSON(data)
 }
 
-// sendStandardResponse envía una respuesta con el formato estandarizado
 func sendStandardResponse(c *fiber.Ctx, statusCode int, intCode string, data interface{}) error {
 	response := utils.NewResponse(statusCode, intCode, data)
 	return c.Status(statusCode).JSON(response)
 }
 
 func Register(c *fiber.Ctx) error {
-	var req models.RegisterRequest // Cambiar de LoginRequest a RegisterRequest
+	var req models.RegisterRequest 
 	if err := c.BodyParser(&req); err != nil {
 		return sendStandardResponse(c, 400, utils.REGISTER_PARSE_ERROR, fiber.Map{
 			"error":       "Error al parsear datos",
@@ -48,7 +41,6 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// Validar fortaleza de contraseña
 	if !utils.IsStrongPassword(req.Password) {
 		return sendStandardResponse(c, 400, utils.REGISTER_WEAK_PASSWORD, fiber.Map{
 			"error":       "La contraseña debe tener al menos 12 caracteres, incluir mayúsculas, minúsculas, números y símbolos",
@@ -56,7 +48,6 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// Hash de la contraseña
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return sendStandardResponse(c, 500, utils.REGISTER_HASH_ERROR, fiber.Map{
@@ -65,7 +56,6 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// Generar MFA
 	mfaSecret, err := utils.GenerateMFASecret()
 	if err != nil {
 		return sendStandardResponse(c, 500, utils.REGISTER_MFA_ERROR, fiber.Map{
@@ -74,7 +64,6 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// Generar QR Code
 	qrCodeURL, err := utils.GenerateQRCode(req.Email, mfaSecret, "Hospital System")
 	if err != nil {
 		return sendStandardResponse(c, 500, utils.REGISTER_MFA_ERROR, fiber.Map{
@@ -86,12 +75,10 @@ func Register(c *fiber.Ctx) error {
 	db := config.GetDB()
 	var usuario models.Usuario
 
-	// Determinar role_id basado en tipo si no se proporciona
 	var roleID *int
 	if req.RoleID != nil {
 		roleID = req.RoleID
 	} else {
-		// Mapear tipo a role_id
 		roleMap := map[string]int{
 			"admin":     1,
 			"medico":    2,
@@ -103,7 +90,6 @@ func Register(c *fiber.Ctx) error {
 		}
 	}
 
-	// Query actualizada
 	err = db.QueryRow(`
 		INSERT INTO Usuarios (nombre, email, password, tipo, role_id, mfa_enabled, mfa_secret, created_at, updated_at) 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
@@ -118,12 +104,11 @@ func Register(c *fiber.Ctx) error {
 		})
 	}
 
-	// Respuesta exitosa
 	responseData := fiber.Map{
 		"description": utils.GetCodeDescription(utils.REGISTER_SUCCESS),
 		"message":     "Usuario registrado. Configura Microsoft Authenticator con el código QR o secreto.",
-		"secret_key":  mfaSecret,  // Cambiar de mfa_secret a secret_key
-		"qr_code_url": qrCodeURL,  // Agregar QR code URL
+		"secret_key":  mfaSecret, 
+		"qr_code_url": qrCodeURL, 
 	}
 
 	return sendStandardResponse(c, 201, utils.REGISTER_SUCCESS, responseData)
@@ -143,13 +128,15 @@ func Login(c *fiber.Ctx) error {
 
 	db := config.GetDB()
 	var usuario models.Usuario
-	var hashedPassword, mfaSecret string
+	var hashedPassword string
+	var mfaSecret sql.NullString 
 	var backupCodes pq.StringArray
+	var roleID *int
 
 	err := db.QueryRow(`
-		SELECT id_usuario, nombre, email, password, tipo, mfa_enabled, mfa_secret, backup_codes, created_at, updated_at 
+		SELECT id_usuario, nombre, email, password, tipo, role_id, mfa_enabled, mfa_secret, backup_codes, created_at, updated_at 
 		FROM Usuarios WHERE email = $1`, req.Email).Scan(
-		&usuario.IDUsuario, &usuario.Nombre, &usuario.Email, &hashedPassword, &usuario.Tipo,
+		&usuario.IDUsuario, &usuario.Nombre, &usuario.Email, &hashedPassword, &usuario.Tipo, &roleID,
 		&usuario.MFAEnabled, &mfaSecret, &backupCodes, &usuario.CreatedAt, &usuario.UpdatedAt)
 
 	if err != nil {
@@ -174,7 +161,59 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// Validar MFA
+	if !usuario.MFAEnabled {
+		newMFASecret, err := utils.GenerateMFASecret()
+		if err != nil {
+			return sendStandardResponse(c, 500, utils.LOGIN_SERVER_ERROR, fiber.Map{
+				"error":       "Error al generar MFA",
+				"description": "Error interno del servidor",
+			})
+		}
+
+		newBackupCodes, err := utils.GenerateBackupCodes(8)
+		if err != nil {
+			return sendStandardResponse(c, 500, utils.LOGIN_SERVER_ERROR, fiber.Map{
+				"error":       "Error al generar códigos de respaldo",
+				"description": "Error interno del servidor",
+			})
+		}
+
+		qrCodeURL, err := utils.GenerateQRCode(usuario.Email, newMFASecret, "Hospital System")
+		if err != nil {
+			return sendStandardResponse(c, 500, utils.LOGIN_SERVER_ERROR, fiber.Map{
+				"error":       "Error al generar código QR",
+				"description": "Error interno del servidor",
+			})
+		}
+
+		_, err = db.Exec(`
+			UPDATE Usuarios 
+			SET mfa_enabled = TRUE, mfa_secret = $1, backup_codes = $2, updated_at = CURRENT_TIMESTAMP 
+			WHERE id_usuario = $3`,
+			newMFASecret, pq.Array(newBackupCodes), usuario.IDUsuario)
+
+		if err != nil {
+			return sendStandardResponse(c, 500, utils.LOGIN_SERVER_ERROR, fiber.Map{
+				"error":       "Error al activar MFA",
+				"description": "Error interno del servidor",
+			})
+		}
+
+		usuario.MFAEnabled = true
+
+		responseData := fiber.Map{
+			"first_login":    true,
+			"mfa_configured": true,
+			"secret_key":     newMFASecret,
+			"qr_code_url":    qrCodeURL,
+			"backup_codes":   newBackupCodes,
+			"message":        "¡Bienvenido! Se ha configurado automáticamente tu autenticación de dos factores.",
+			"instructions":   "1. Guarda estos códigos de respaldo en un lugar seguro\n2. Escanea el código QR con Google Authenticator o Microsoft Authenticator\n3. En futuros logins necesitarás el código de 6 dígitos de tu aplicación",
+			"user":           usuario,
+		}
+		return sendStandardResponse(c, 200, "MFA_AUTO_CONFIGURED", responseData)
+	}
+
 	if usuario.MFAEnabled {
 		if req.TOTPCode == "" {
 			responseData := fiber.Map{
@@ -186,7 +225,7 @@ func Login(c *fiber.Ctx) error {
 		}
 
 		validMFA := false
-		if utils.ValidateTOTP(mfaSecret, req.TOTPCode) {
+		if mfaSecret.Valid && utils.ValidateTOTP(mfaSecret.String, req.TOTPCode) {
 			validMFA = true
 		} else {
 			newBackupCodes, isBackupCode := utils.ValidateBackupCode(backupCodes, req.TOTPCode)
@@ -206,9 +245,27 @@ func Login(c *fiber.Ctx) error {
 		}
 	}
 
+	var permissions []utils.Permission
+	if roleID != nil {
+		permissionRows, err := db.Query(`
+			SELECT p.resource, p.action 
+			FROM permissions p
+			INNER JOIN role_permissions rp ON p.id = rp.permission_id
+			WHERE rp.role_id = $1
+		`, *roleID)
+		if err == nil {
+			defer permissionRows.Close()
+			for permissionRows.Next() {
+				var permission utils.Permission
+				permissionRows.Scan(&permission.Resource, &permission.Action)
+				permissions = append(permissions, permission)
+			}
+		}
+	}
+
 	logLoginAttempt(db, req.Email, clientIP, userAgent, true)
 
-	accessToken, err := utils.GenerateAccessToken(usuario.IDUsuario, usuario.Email, string(usuario.Tipo))
+	accessToken, err := utils.GenerateAccessToken(usuario.IDUsuario, usuario.Email, string(usuario.Tipo), roleID, permissions)
 	if err != nil {
 		return sendStandardResponse(c, 500, utils.LOGIN_TOKEN_ERROR, fiber.Map{
 			"error":       "Error al generar token",
@@ -237,7 +294,6 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	// Respuesta exitosa
 	responseData := fiber.Map{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
@@ -258,11 +314,12 @@ func RefreshToken(c *fiber.Ctx) error {
 	db := config.GetDB()
 	var usuario models.Usuario
 	var tokenExpiry time.Time
+	var roleID *int
 
 	err := db.QueryRow(`
-		SELECT id_usuario, nombre, email, tipo, token_expiry 
+		SELECT id_usuario, nombre, email, tipo, role_id, token_expiry 
 		FROM Usuarios WHERE refresh_token = $1`, req.RefreshToken).Scan(
-		&usuario.IDUsuario, &usuario.Nombre, &usuario.Email, &usuario.Tipo, &tokenExpiry)
+		&usuario.IDUsuario, &usuario.Nombre, &usuario.Email, &usuario.Tipo, &roleID, &tokenExpiry)
 
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": "Refresh token inválido"})
@@ -272,7 +329,25 @@ func RefreshToken(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"error": "Refresh token expirado"})
 	}
 
-	accessToken, err := utils.GenerateAccessToken(usuario.IDUsuario, usuario.Email, string(usuario.Tipo))
+	var permissions []utils.Permission
+	if roleID != nil {
+		permissionRows, err := db.Query(`
+			SELECT p.resource, p.action 
+			FROM permissions p
+			INNER JOIN role_permissions rp ON p.id = rp.permission_id
+			WHERE rp.role_id = $1
+		`, *roleID)
+		if err == nil {
+			defer permissionRows.Close()
+			for permissionRows.Next() {
+				var permission utils.Permission
+				permissionRows.Scan(&permission.Resource, &permission.Action)
+				permissions = append(permissions, permission)
+			}
+		}
+	}
+
+	accessToken, err := utils.GenerateAccessToken(usuario.IDUsuario, usuario.Email, string(usuario.Tipo), roleID, permissions)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Error al generar token"})
 	}

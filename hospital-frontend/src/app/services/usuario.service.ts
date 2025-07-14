@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Usuario, CreateUsuarioRequest } from '../models/usuario.model';
+import { Usuario, CreateUsuarioRequest, MFASetupResponse, MFAVerifyRequest } from '../models/usuario.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsuarioService {
   private apiUrl = 'http://localhost:3001/api/v1/usuarios';
+  private authUrl = 'http://localhost:3001/api/v1/auth';
 
   constructor(private http: HttpClient) {}
 
@@ -29,5 +30,14 @@ export class UsuarioService {
 
   deleteUsuario(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+
+  getMFASetup(userId: number): Observable<MFASetupResponse> {
+    return this.http.get<MFASetupResponse>(`${this.authUrl}/mfa/setup/${userId}`);
+  }
+
+  verifyMFASetup(userId: number, request: MFAVerifyRequest): Observable<any> {
+    return this.http.post(`${this.authUrl}/mfa/setup/${userId}/verify`, request);
   }
 }

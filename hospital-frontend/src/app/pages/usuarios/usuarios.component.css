@@ -1,3 +1,268 @@
+@import 'primeicons/primeicons.css';
+
+.p-button {
+  display: inline-flex;
+  cursor: pointer;
+  user-select: none;
+  align-items: center;
+  vertical-align: bottom;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+  color: #ffffff;
+  background: #007ad9;
+  border: 1px solid #007ad9;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  border-radius: 3px;
+}
+
+.p-button:hover {
+  background: #0067b8;
+  border-color: #0067b8;
+}
+
+.p-button-secondary {
+  background: #6c757d;
+  border-color: #6c757d;
+}
+
+.p-button-secondary:hover {
+  background: #545b62;
+  border-color: #545b62;
+}
+
+.p-button-danger {
+  background: #dc3545;
+  border-color: #dc3545;
+}
+
+.p-button-danger:hover {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+.p-button-sm {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.p-datatable {
+  position: relative;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  text-align: left;
+  padding: 1rem 1rem;
+  border: 1px solid #e9ecef;
+  border-width: 0 0 1px 0;
+  font-weight: 600;
+  color: #495057;
+  background: #f8f9fa;
+  transition: box-shadow 0.2s;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  background: #ffffff;
+  color: #495057;
+  transition: box-shadow 0.2s;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  text-align: left;
+  border: 1px solid #e9ecef;
+  border-width: 0 0 1px 0;
+  padding: 1rem 1rem;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: #f8f9fa;
+}
+
+.p-dialog {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+.p-dialog-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.p-dialog .p-dialog-content {
+  background: #ffffff;
+  color: #495057;
+  padding: 1.5rem;
+  border-radius: 3px;
+  box-shadow: 0 11px 15px -7px rgba(0, 0, 0, 0.2), 0 24px 38px 3px rgba(0, 0, 0, 0.14), 0 9px 46px 8px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+  transform: scale(1);
+  transition: transform 0.3s;
+  width: 50vw;
+  max-height: 90%;
+  overflow: auto;
+}
+
+.p-dialog .p-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 1.5rem 1.5rem 0 1.5rem;
+}
+
+.p-dialog .p-dialog-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
+.p-inputtext {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 1rem;
+  color: #495057;
+  background: #ffffff;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ced4da;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  appearance: none;
+  border-radius: 3px;
+  width: 100%;
+}
+
+.p-inputtext:enabled:focus {
+  outline: 0 none;
+  outline-offset: 0;
+  box-shadow: 0 0 0 0.2rem #a6d5fa;
+  border-color: #007ad9;
+}
+
+.p-dropdown {
+  display: inline-flex;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  background: #ffffff;
+  border: 1px solid #ced4da;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  border-radius: 3px;
+  width: 100%;
+}
+
+.p-dropdown:not(.p-disabled):hover {
+  border-color: #007ad9;
+}
+
+.p-dropdown:not(.p-disabled).p-focus {
+  outline: 0 none;
+  outline-offset: 0;
+  box-shadow: 0 0 0 0.2rem #a6d5fa;
+  border-color: #007ad9;
+}
+
+.p-card {
+  background: #ffffff;
+  color: #495057;
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 3px;
+  margin-bottom: 2rem;
+}
+
+.p-card .p-card-body {
+  padding: 1.5rem;
+}
+
+.p-card .p-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.p-card .p-card-subtitle {
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+  color: #6c757d;
+}
+
+.p-card .p-card-content {
+  padding: 1rem 0;
+}
+
+.p-card .p-card-footer {
+  padding: 1rem 0 0 0;
+}
+
+.p-field {
+  margin-bottom: 1rem;
+}
+
+.p-field > label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #495057;
+  font-weight: 600;
+}
+
+.p-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.p-toast {
+  position: fixed;
+  width: 25rem;
+}
+
+.p-toast.p-toast-top-right {
+  top: 20px;
+  right: 20px;
+}
+
+.p-toast .p-toast-message {
+  margin: 0 0 1rem 0;
+  box-shadow: 0 3px 6px -2px rgba(0, 0, 0, 0.12), 0 5px 10px -3px rgba(0, 0, 0, 0.12), 0 1px 18px 0 rgba(0, 0, 0, 0.12);
+  border-radius: 3px;
+}
+
+.p-toast .p-toast-message.p-toast-message-info {
+  background: #b3e5fc;
+  border: 1px solid #b3e5fc;
+  color: #01579b;
+}
+
+.p-toast .p-toast-message.p-toast-message-success {
+  background: #c8e6c9;
+  border: 1px solid #c8e6c9;
+  color: #1b5e20;
+}
+
+.p-toast .p-toast-message.p-toast-message-warn {
+  background: #ffecb3;
+  border: 1px solid #ffecb3;
+  color: #7f6000;
+}
+
+.p-toast .p-toast-message.p-toast-message-error {
+  background: #ffcdd2;
+  border: 1px solid #ffcdd2;
+  color: #c62828;
+}
+
 .usuarios-container {
   padding: 20px;
   max-width: 1200px;

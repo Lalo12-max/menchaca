@@ -1,113 +1,179 @@
 <div class="expedientes-container">
+  <p-toast></p-toast>
+  
   <div class="header">
     <h2>Gestión de Expedientes</h2>
-    <button class="btn btn-primary" (click)="openCreateForm()">
-      <i class="fas fa-plus"></i> Nuevo Expediente
-    </button>
+    <p-button 
+      label="Nuevo Expediente" 
+      icon="pi pi-plus" 
+      styleClass="p-button-primary"
+      (onClick)="openCreateForm()">
+    </p-button>
   </div>
+
+  <p-message 
+    *ngIf="errorMessage" 
+    severity="error" 
+    [text]="errorMessage"
+    [closable]="true"
+    (onClose)="clearMessages()">
+  </p-message>
+  
+  <p-message 
+    *ngIf="successMessage" 
+    severity="success" 
+    [text]="successMessage"
+    [closable]="true"
+    (onClose)="clearMessages()">
+  </p-message>
 
   <div *ngIf="loading" class="loading">
-    <i class="fas fa-spinner fa-spin"></i> Cargando...
+    <i class="pi pi-spin pi-spinner"></i> Cargando...
   </div>
 
-  <div *ngIf="!loading" class="table-container">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Paciente</th>
-          <th>Antecedentes</th>
-          <th>Historial Clínico</th>
-          <th>Seguro</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let expediente of expedientes">
-          <td>{{ expediente.id_expediente }}</td>
-          <td>{{ getPacienteNombre(expediente.paciente_id) }}</td>
-          <td>{{ expediente.antecedentes || 'N/A' }}</td>
-          <td>{{ expediente.historial_clinico || 'N/A' }}</td>
-          <td>{{ expediente.seguro || 'N/A' }}</td>
-          <td>
-            <button class="btn btn-sm btn-secondary" (click)="openEditForm(expediente)">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-danger" (click)="deleteExpediente(expediente.id_expediente!)">
-              <i class="fas fa-trash"></i>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <p-table 
+    *ngIf="!loading"
+    [value]="expedientes" 
+    [paginator]="true" 
+    [rows]="10"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} expedientes"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    styleClass="p-datatable-striped">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Paciente</th>
+        <th>Antecedentes</th>
+        <th>Historial Clínico</th>
+        <th>Seguro</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-expediente>
+      <tr>
+        <td>
+          <p-tag [value]="expediente.id_expediente.toString()" severity="info"></p-tag>
+        </td>
+        <td>{{ getPacienteNombre(expediente.paciente_id) }}</td>
+        <td>
+          <span 
+            [pTooltip]="expediente.antecedentes || 'Sin antecedentes'"
+            tooltipPosition="top">
+            {{ (expediente.antecedentes || 'N/A') | slice:0:50 }}
+            <span *ngIf="expediente.antecedentes && expediente.antecedentes.length > 50">...</span>
+          </span>
+        </td>
+        <td>
+          <span 
+            [pTooltip]="expediente.historial_clinico || 'Sin historial clínico'"
+            tooltipPosition="top">
+            {{ (expediente.historial_clinico || 'N/A') | slice:0:50 }}
+            <span *ngIf="expediente.historial_clinico && expediente.historial_clinico.length > 50">...</span>
+          </span>
+        </td>
+        <td>{{ expediente.seguro || 'N/A' }}</td>
+        <td>
+          <p-button 
+            icon="pi pi-pencil" 
+            styleClass="p-button-secondary p-button-sm"
+            [pTooltip]="'Editar expediente'"
+            tooltipPosition="top"
+            (onClick)="openEditForm(expediente)">
+          </p-button>
+          <p-button 
+            icon="pi pi-trash" 
+            styleClass="p-button-danger p-button-sm"
+            [pTooltip]="'Eliminar expediente'"
+            tooltipPosition="top"
+            (onClick)="deleteExpediente(expediente.id_expediente!)">
+          </p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
 
-  <div *ngIf="showForm" class="modal-overlay" (click)="closeForm()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ editingExpediente ? 'Editar Expediente' : 'Nuevo Expediente' }}</h3>
-        <button class="btn-close" (click)="closeForm()">&times;</button>
+  <p-dialog 
+    [header]="editingExpediente ? 'Editar Expediente' : 'Nuevo Expediente'"
+    [(visible)]="showForm"
+    [modal]="true"
+    [closable]="true"
+    [draggable]="false"
+    [resizable]="false"
+    styleClass="expediente-dialog"
+    [style]="{width: '600px', maxWidth: '90vw'}">
+    
+    <form [formGroup]="expedienteForm" (ngSubmit)="onSubmit()">
+      <div class="p-field">
+        <label for="paciente_id">Paciente *</label>
+        <p-dropdown 
+          id="paciente_id"
+          formControlName="paciente_id"
+          [options]="pacientes"
+          optionLabel="nombre"
+          optionValue="id_usuario"
+          placeholder="Seleccione un paciente"
+          [class.ng-invalid]="expedienteForm.get('paciente_id')?.invalid && expedienteForm.get('paciente_id')?.touched"
+          [class.ng-touched]="expedienteForm.get('paciente_id')?.touched">
+        </p-dropdown>
+        <small 
+          *ngIf="expedienteForm.get('paciente_id')?.invalid && expedienteForm.get('paciente_id')?.touched" 
+          class="p-error">
+          Seleccione un paciente
+        </small>
       </div>
-      
-      <form [formGroup]="expedienteForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="paciente_id">Paciente *</label>
-          <select 
-            id="paciente_id" 
-            formControlName="paciente_id" 
-            class="form-control"
-            [class.is-invalid]="expedienteForm.get('paciente_id')?.invalid && expedienteForm.get('paciente_id')?.touched"
-          >
-            <option value="">Seleccione un paciente</option>
-            <option *ngFor="let paciente of pacientes" [value]="paciente.id_usuario">
-              {{ paciente.nombre }}
-            </option>
-          </select>
-          <div *ngIf="expedienteForm.get('paciente_id')?.invalid && expedienteForm.get('paciente_id')?.touched" class="invalid-feedback">
-            Seleccione un paciente
-          </div>
-        </div>
 
-        <div class="form-group">
-          <label for="antecedentes">Antecedentes</label>
-          <textarea 
-            id="antecedentes" 
-            formControlName="antecedentes" 
-            class="form-control"
-            rows="4"
-            placeholder="Antecedentes médicos del paciente"
-          ></textarea>
-        </div>
+      <div class="p-field">
+        <label for="antecedentes">Antecedentes</label>
+        <textarea 
+          id="antecedentes" 
+          formControlName="antecedentes" 
+          pInputText
+          rows="4"
+          placeholder="Antecedentes médicos del paciente"
+          style="resize: vertical; min-height: 100px;">
+        </textarea>
+      </div>
 
-        <div class="form-group">
-          <label for="historial_clinico">Historial Clínico</label>
-          <textarea 
-            id="historial_clinico" 
-            formControlName="historial_clinico" 
-            class="form-control"
-            rows="4"
-            placeholder="Historial clínico del paciente"
-          ></textarea>
-        </div>
+      <div class="p-field">
+        <label for="historial_clinico">Historial Clínico</label>
+        <textarea 
+          id="historial_clinico" 
+          formControlName="historial_clinico" 
+          pInputText
+          rows="4"
+          placeholder="Historial clínico del paciente"
+          style="resize: vertical; min-height: 100px;">
+        </textarea>
+      </div>
 
-        <div class="form-group">
-          <label for="seguro">Seguro Médico</label>
-          <input 
-            type="text" 
-            id="seguro" 
-            formControlName="seguro" 
-            class="form-control"
-            placeholder="Información del seguro médico"
-          >
-        </div>
-
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" (click)="closeForm()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" [disabled]="expedienteForm.invalid">
-            {{ editingExpediente ? 'Actualizar' : 'Crear' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+      <div class="p-field">
+        <label for="seguro">Seguro Médico</label>
+        <input 
+          type="text" 
+          id="seguro" 
+          formControlName="seguro" 
+          pInputText
+          placeholder="Información del seguro médico">
+      </div>
+    </form>
+    
+    <ng-template pTemplate="footer">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        styleClass="p-button-secondary"
+        (onClick)="closeForm()">
+      </p-button>
+      <p-button 
+        [label]="editingExpediente ? 'Actualizar' : 'Crear'" 
+        [icon]="editingExpediente ? 'pi pi-check' : 'pi pi-plus'"
+        styleClass="p-button-primary"
+        [disabled]="expedienteForm.invalid"
+        (onClick)="onSubmit()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
 </div>

@@ -19,6 +19,29 @@ export interface Usuario {
 export interface CreateUsuarioRequest {
   nombre: string;
   email?: string;
+  password: string; 
   tipo: TipoUsuario;
   role_id?: number;
+}
+
+export interface LoginResponse {
+  access_token?: string;
+  refresh_token?: string;
+  user?: Usuario;
+  requires_mfa?: boolean;
+  needs_mfa_setup?: boolean;
+  user_id?: number;
+  message?: string;
+}
+
+export interface MFASetupResponse {
+  secret: string;
+  qr_code_url: string;
+  message: string;
+  instructions: string;
+}
+
+export interface MFAVerifyRequest {
+  secret: string;
+  totp_code: string;
 }

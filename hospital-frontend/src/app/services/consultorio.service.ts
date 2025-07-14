@@ -7,7 +7,7 @@ import { Consultorio, CreateConsultorioRequest } from '../models/consultorio.mod
   providedIn: 'root'
 })
 export class ConsultorioService {
-  private apiUrl = 'http://localhost:3001/api/v1/consultorios';
+  private apiUrl = 'http://localhost:3001/api/v1/consultorios'; 
 
   constructor(private http: HttpClient) {}
 
