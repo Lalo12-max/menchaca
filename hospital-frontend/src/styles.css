@@ -4,14 +4,24 @@
 
 
 :root {
-  --primary-color: #3B82F6;
+  --primary-color: #2563eb;
+  --primary-color-dark: #1d4ed8;
+  --primary-color-light: #3b82f6;
+  --secondary-color: #059669;
+  --secondary-color-dark: #047857;
+  --accent-color: #dc2626;
+  --accent-color-light: #ef4444;
+  --success-color: #16a34a;
+  --warning-color: #d97706;
+  --info-color: #0891b2;
   --primary-color-text: #ffffff;
   --surface-ground: #f8fafc;
   --surface-card: #ffffff;
   --surface-border: #e2e8f0;
+  --surface-hover: #f1f5f9;
   --text-color: #1e293b;
   --text-color-secondary: #64748b;
-  --border-radius: 6px;
+  --border-radius: 8px;
   --shadow-1: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
   --shadow-2: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -22,6 +32,7 @@ html, body {
     margin: 0;
     font-family: var(--font-family);
     background-color: var(--surface-ground);
+    color: var(--text-color);
 }
 
 .auth-form-container {
@@ -29,12 +40,14 @@ html, body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: var(--surface-ground);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
 }
 
 .p-card {
     width: 100%;
     max-width: 400px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-2);
 }
 
 .p-field {
@@ -43,6 +56,36 @@ html, body {
 
 .p-button {
     width: 100%;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+.p-button:hover {
+    background-color: var(--primary-color-dark);
+    border-color: var(--primary-color-dark);
+    transform: translateY(-1px);
+}
+
+.p-button.p-button-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.p-button.p-button-secondary:hover {
+    background-color: var(--secondary-color-dark);
+    border-color: var(--secondary-color-dark);
+}
+
+.p-button.p-button-danger {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.p-button.p-button-danger:hover {
+    background-color: var(--accent-color-light);
+    border-color: var(--accent-color-light);
 }
 
 .text-center {
@@ -55,6 +98,14 @@ html, body {
 
 .p-inputtext {
     width: 100%;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--surface-border);
+    transition: border-color 0.3s ease;
+}
+
+.p-inputtext:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .p-password {
@@ -63,10 +114,12 @@ html, body {
 
 .p-password input {
     width: 100%;
+    border-radius: var(--border-radius);
 }
 
 .p-dropdown {
     width: 100%;
+    border-radius: var(--border-radius);
 }
 
 .main-layout {
@@ -76,8 +129,9 @@ html, body {
 
 .sidebar {
     width: 250px;
-    background-color: var(--surface-card);
+    background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
     border-right: 1px solid var(--surface-border);
+    color: white;
 }
 
 .content {
@@ -87,16 +141,18 @@ html, body {
 }
 
 .header {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: var(--primary-color-text);
-    padding: 1rem;
+    padding: 1.5rem;
     margin-bottom: 1rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-1);
 }
 
 .card-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1rem;
+    gap: 1.5rem;
     margin-bottom: 2rem;
 }
 
@@ -122,7 +178,6 @@ html, body {
     text-align: right;
 }
 
-
 @media (max-width: 768px) {
     .main-layout {
         flex-direction: column;
@@ -143,22 +198,36 @@ html, body {
     }
 }
 
-
 .p-datatable {
     margin-top: 1rem;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-1);
 }
 
 .p-datatable .p-datatable-header {
-    background-color: var(--surface-card);
-    border: 1px solid var(--surface-border);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    color: white;
+    border: none;
 }
 
+.p-datatable .p-datatable-thead > tr > th {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    border: none;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+    background-color: var(--surface-hover);
+}
 
 .form-container {
     background-color: var(--surface-card);
     padding: 2rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-2);
+    border: 1px solid var(--surface-border);
 }
 
 .form-actions {
@@ -168,30 +237,62 @@ html, body {
     margin-top: 2rem;
 }
 
-
 .p-message {
     margin-bottom: 1rem;
+    border-radius: var(--border-radius);
 }
 
+.p-message.p-message-success {
+    background-color: #dcfce7;
+    border-color: #bbf7d0;
+    color: var(--success-color);
+}
+
+.p-message.p-message-error {
+    background-color: #fee2e2;
+    border-color: #fecaca;
+    color: var(--accent-color);
+}
+
+.p-message.p-message-warn {
+    background-color: #fef3c7;
+    border-color: #fde68a;
+    color: var(--warning-color);
+}
+
+.p-message.p-message-info {
+    background-color: #e0f2fe;
+    border-color: #b3e5fc;
+    color: var(--info-color);
+}
 
 .p-menubar {
     margin-bottom: 1rem;
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--border-radius);
 }
-
 
 .p-dialog {
     min-width: 300px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-2);
 }
 
 .p-dialog .p-dialog-content {
     padding: 1rem;
 }
 
+.p-dialog .p-dialog-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    color: white;
+    border-bottom: none;
+}
 
 .auth-form-container .p-card .p-card-header {
     text-align: center;
     padding: 2rem 2rem 1rem 2rem;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #1d4ed8 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
     margin: -1.5rem -1.5rem 1.5rem -1.5rem;
     border-radius: var(--border-radius) var(--border-radius) 0 0;
@@ -209,7 +310,6 @@ html, body {
     font-size: 0.95rem;
 }
 
-
 .p-field label {
     display: block;
     margin-bottom: 0.5rem;
@@ -219,7 +319,7 @@ html, body {
 }
 
 .p-field .p-error {
-    color: #ef4444;
+    color: var(--accent-color);
     font-size: 0.75rem;
     margin-top: 0.25rem;
     display: block;
@@ -227,16 +327,14 @@ html, body {
 
 .p-inputtext.ng-invalid.ng-touched,
 .p-password.ng-invalid.ng-touched .p-password-input {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 1px #ef4444;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
-
 
 .p-button[loading] {
     opacity: 0.7;
     cursor: not-allowed;
 }
-
 
 a {
     color: var(--primary-color);
@@ -245,46 +343,45 @@ a {
 }
 
 a:hover {
-    color: #1d4ed8;
+    color: var(--primary-color-dark);
     text-decoration: underline;
 }
-
 
 .medical-card {
     border-left: 4px solid var(--primary-color);
     background: var(--surface-card);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-1);
-    transition: box-shadow 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .medical-card:hover {
     box-shadow: var(--shadow-2);
+    transform: translateY(-2px);
 }
 
 .patient-info {
-    background: #f0f9ff;
-    border: 1px solid #bae6fd;
+    background: #e0f2fe;
+    border: 1px solid #b3e5fc;
     border-radius: var(--border-radius);
     padding: 1rem;
     margin-bottom: 1rem;
 }
 
 .urgent {
-    border-left-color: #ef4444 !important;
-    background: #fef2f2;
+    border-left-color: var(--accent-color) !important;
+    background: #fee2e2;
 }
 
 .completed {
-    border-left-color: #10b981 !important;
-    background: #f0fdf4;
+    border-left-color: var(--success-color) !important;
+    background: #dcfce7;
 }
 
 .pending {
-    border-left-color: #f59e0b !important;
-    background: #fffbeb;
+    border-left-color: var(--warning-color) !important;
+    background: #fef3c7;
 }
-
 
 .status-badge {
     padding: 0.25rem 0.75rem;
@@ -297,19 +394,18 @@ a:hover {
 
 .status-badge.urgent {
     background: #fee2e2;
-    color: #dc2626;
+    color: var(--accent-color);
 }
 
 .status-badge.completed {
     background: #dcfce7;
-    color: #16a34a;
+    color: var(--success-color);
 }
 
 .status-badge.pending {
     background: #fef3c7;
-    color: #d97706;
+    color: var(--warning-color);
 }
-
 
 .medical-nav {
     background: var(--surface-card);
@@ -321,7 +417,6 @@ a:hover {
     border: none;
     background: transparent;
 }
-
 
 .medical-table .p-datatable-thead > tr > th {
     background: var(--primary-color);
@@ -335,9 +430,8 @@ a:hover {
 }
 
 .medical-table .p-datatable-tbody > tr:hover {
-    background: #e2e8f0;
+    background: var(--surface-hover);
 }
-
 
 .medical-form {
     background: var(--surface-card);
@@ -345,6 +439,7 @@ a:hover {
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-1);
     margin-bottom: 2rem;
+    border: 1px solid var(--surface-border);
 }
 
 .medical-form .form-section {
@@ -372,7 +467,6 @@ a:hover {
 .medical-form .section-title i {
     color: var(--primary-color);
 }
-
 
 @media (max-width: 640px) {
     .auth-form-container {
